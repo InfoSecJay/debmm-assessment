@@ -835,8 +835,9 @@ def generate_spreadsheet(
 def main():
     parser = argparse.ArgumentParser(description="Generate DEBMM assessment spreadsheet.")
     parser.add_argument(
-        "--output", "-o", type=Path, default=Path("debmm-assessment.xlsx"),
-        help="Output Excel file path (default: debmm-assessment.xlsx)",
+        "--output", "-o", type=Path,
+        default=PROJECT_ROOT / "templates" / "debmm-assessment.xlsx",
+        help="Output Excel file path (default: templates/debmm-assessment.xlsx)",
     )
     parser.add_argument(
         "--mode", choices=["self", "audit"], default="self",
