@@ -1,0 +1,824 @@
+# Detection Engineering Behavior Maturity Model (DEBMM) Assessment Rubric
+# Based on Elastic's DEBMM with enrichment from detectionengineering.io
+#
+# Structure:
+#   - 5 DEBMM Tiers (0-4) with 15 core criteria
+#   - 2 Enrichment categories with 6 additional criteria
+#   - Each criterion scored on 5 maturity levels (1-5)
+#
+# Maturity Levels:
+#   1 - Initial:    Minimal or no activity
+#   2 - Repeatable: Sporadic, inconsistent efforts
+#   3 - Defined:    Regular, documented processes
+#   4 - Managed:    Comprehensive, well-integrated activities
+#   5 - Optimized:  Fully automated, continuous improvement
+
+maturity_levels:
+  1:
+    name: Initial
+    description: Minimal or no structured activity in this area.
+  2:
+    name: Repeatable
+    description: Sporadic and inconsistent efforts; some awareness but no formal process.
+  3:
+    name: Defined
+    description: Regular, documented processes are in place and followed consistently.
+  4:
+    name: Managed
+    description: Comprehensive, well-integrated activities with measurable outcomes.
+  5:
+    name: Optimized
+    description: Fully automated, continuously improving, and deeply embedded in operations.
+
+tiers:
+  # ============================================================
+  # TIER 0: FOUNDATION
+  # ============================================================
+  - id: tier_0
+    name: Foundation
+    description: >
+      Establishes the basic groundwork for detection engineering. Without these
+      foundational practices, higher-tier activities lack structure and consistency.
+    criteria:
+
+      - id: structured_rule_development
+        name: Structured Rule Development Approach
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No structured approach to rule development. Rules are created randomly
+              or reactively without any guiding methodology.
+            quantitative: "0% of rules follow a formal development process."
+          2:
+            qualitative: >
+              Some rules follow a loose process, but it is inconsistently applied.
+              Individual contributors may have personal workflows.
+            quantitative: "<30% of rules follow a documented development process."
+          3:
+            qualitative: >
+              A defined rule development methodology exists and is documented.
+              Most new rules follow the standard process including peer review.
+            quantitative: "50-70% of rules follow the documented process; schema alignment >60%."
+          4:
+            qualitative: >
+              Rule development is standardized across the team with enforced workflows,
+              templates, and quality gates. Deviations are tracked and addressed.
+            quantitative: "80-90% schema alignment; all new rules go through formal review."
+          5:
+            qualitative: >
+              Continuous improvement of the development process based on feedback loops.
+              Process is fully integrated with CI/CD and automated quality checks.
+            quantitative: "90-100% schema alignment; automated linting and validation on all rules."
+
+      - id: rule_creation_maintenance
+        name: Rule Creation and Maintenance
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              Rules are created ad hoc with no maintenance schedule. Stale or broken
+              rules accumulate over time.
+            quantitative: "<50% of rules reviewed annually."
+          2:
+            qualitative: >
+              Some rules are periodically reviewed, but there is no systematic
+              maintenance process. Updates happen reactively.
+            quantitative: "50-70% of rules reviewed annually; no formal peer review."
+          3:
+            qualitative: >
+              Regular rule review cycles are established. Rules have owners and
+              defined review schedules. Peer review is standard practice.
+            quantitative: "70-80% of rules reviewed on schedule; peer review on most changes."
+          4:
+            qualitative: >
+              Comprehensive rule lifecycle management with creation, testing, deployment,
+              monitoring, and retirement processes. All changes are peer-reviewed.
+            quantitative: "80-90% of rules reviewed on schedule; 100% peer review on changes."
+          5:
+            qualitative: >
+              Continuous rule improvement with automated monitoring of rule health.
+              Automated updates triggered by telemetry changes or threat intelligence.
+            quantitative: "90-100% of rules reviewed on schedule; automated health monitoring."
+
+      - id: roadmap_documentation
+        name: Roadmap Documentation
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No detection roadmap exists. Work is entirely reactive or driven by
+              individual initiative.
+            quantitative: "0% of detection work tied to a documented plan."
+          2:
+            qualitative: >
+              An informal roadmap or backlog exists but is not regularly maintained
+              or communicated to stakeholders.
+            quantitative: "<30% of rules have scheduled review or development timelines."
+          3:
+            qualitative: >
+              A formal roadmap is documented, reviewed quarterly, and shared with
+              relevant stakeholders. Priorities are clear.
+            quantitative: "50-70% of planned work is tracked against the roadmap."
+          4:
+            qualitative: >
+              Roadmap is integrated with organizational security strategy. Progress
+              is tracked with metrics and reported to leadership.
+            quantitative: "70-90% of planned work tracked; quarterly roadmap reviews with leadership."
+          5:
+            qualitative: >
+              Dynamic, continuously updated roadmap driven by threat intelligence,
+              gap analysis, and organizational risk priorities.
+            quantitative: "90-100% of work tracked; roadmap auto-updated from gap analysis and intel feeds."
+
+      - id: threat_modeling
+        name: Threat Modeling
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No threat modeling is performed. Detection rules are not informed by
+              a structured understanding of threats to the organization.
+            quantitative: "Zero threat modeling exercises performed."
+          2:
+            qualitative: >
+              Occasional threat modeling exercises, typically triggered by incidents
+              or major changes. Not regularly scheduled.
+            quantitative: "<1 formal threat modeling exercise per year."
+          3:
+            qualitative: >
+              Regular threat modeling exercises (at least quarterly) inform detection
+              priorities. Results are documented and fed into the roadmap.
+            quantitative: "Quarterly threat modeling exercises; results documented."
+          4:
+            qualitative: >
+              Threat modeling is integrated into the detection development lifecycle.
+              New detections are prioritized based on threat model outputs.
+            quantitative: "Monthly exercises; >70% of new detections tied to threat model outputs."
+          5:
+            qualitative: >
+              Continuous, proactive threat modeling incorporating real-time threat
+              intelligence, attack surface changes, and emerging TTPs.
+            quantitative: "Continuous modeling; real-time integration with threat intel feeds."
+
+  # ============================================================
+  # TIER 1: BASIC
+  # ============================================================
+  - id: tier_1
+    name: Basic
+    description: >
+      Establishes baseline detection capabilities with systematic management,
+      version control, and initial alignment with the threat landscape.
+    criteria:
+
+      - id: baseline_rule_creation
+        name: Baseline Rule Creation
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              Few or no baseline detection rules exist. Coverage is minimal and
+              limited to out-of-the-box vendor rules.
+            quantitative: "<10 custom baseline rules; minimal ATT&CK technique coverage."
+          2:
+            qualitative: >
+              A small set of baseline rules covers the most critical threats.
+              Rules are basic signature or IOC-based detections.
+            quantitative: "10-30 baseline rules; <30% ATT&CK technique coverage for priority areas."
+          3:
+            qualitative: >
+              Baseline rules cover key threat categories with a mix of signature
+              and behavioral detections. Coverage gaps are identified.
+            quantitative: "30-60 baseline rules; 40-60% ATT&CK technique coverage."
+          4:
+            qualitative: >
+              Comprehensive baseline with behavioral and TTP-focused detections.
+              Rules are tuned per environment and regularly validated.
+            quantitative: "60-100 baseline rules; 60-80% ATT&CK technique coverage."
+          5:
+            qualitative: >
+              Continuously refined baseline with full environment-specific tuning.
+              Automated coverage analysis identifies and fills gaps proactively.
+            quantitative: "100+ baseline rules; >80% ATT&CK technique coverage; continuous refinement."
+
+      - id: ruleset_management
+        name: Ruleset Management and Maintenance
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No formal rule management. Rules live in the SIEM with no version
+              control, change tracking, or documentation.
+            quantitative: "<20% of rules under version control."
+          2:
+            qualitative: >
+              Some rules are stored in version control. Basic documentation exists
+              for some detections but is incomplete.
+            quantitative: "20-50% of rules in version control; basic documentation."
+          3:
+            qualitative: >
+              Most rules are managed in version control with documentation standards.
+              A detection-as-code approach is being adopted.
+            quantitative: "50-80% of rules in version control with documentation."
+          4:
+            qualitative: >
+              Detection-as-code is standard practice. CI/CD pipelines handle rule
+              deployment. All rules are documented and version-controlled.
+            quantitative: "80-90% of rules in DaC pipeline; automated deployment."
+          5:
+            qualitative: >
+              Fully automated rule lifecycle with CI/CD, automated testing, continuous
+              validation, and weekly maintenance cycles.
+            quantitative: "100% DaC; automated testing and deployment; weekly validation cycles."
+
+      - id: telemetry_quality
+        name: Telemetry Quality
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No active management of telemetry quality. Data sources are whatever
+              happens to be available without assessment of completeness.
+            quantitative: "<30% of rule types have adequate telemetry producing expected data."
+          2:
+            qualitative: >
+              Some awareness of telemetry gaps. Basic checks ensure critical data
+              sources are ingesting, but no formal quality program.
+            quantitative: "30-50% of rule types have adequate telemetry; basic health checks."
+          3:
+            qualitative: >
+              Telemetry quality is actively monitored. Data source coverage is mapped
+              to detection needs. CTI enrichment is being integrated.
+            quantitative: "50-70% telemetry coverage; CTI integration beginning."
+          4:
+            qualitative: >
+              Comprehensive telemetry management with automated health monitoring,
+              CTI enrichment, and proactive gap identification.
+            quantitative: "70-90% telemetry coverage; automated health monitoring; CTI integrated."
+          5:
+            qualitative: >
+              Advanced telemetry workflows with real-time enrichment, automated
+              responses to telemetry degradation, and full CTI integration.
+            quantitative: "90-100% coverage; real-time enrichment; automated remediation of gaps."
+
+      - id: threat_landscape_review
+        name: Threat Landscape Review
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No regular review of the threat landscape. Detection priorities are
+              not informed by current threats.
+            quantitative: "No scheduled reviews; <30% of rules aligned to current threats."
+          2:
+            qualitative: >
+              Bi-annual or annual reviews of the threat landscape. Some detection
+              priorities are updated based on major threat changes.
+            quantitative: "1-2 reviews per year; some rule updates based on findings."
+          3:
+            qualitative: >
+              Quarterly threat landscape reviews with documented findings. Detection
+              roadmap is updated based on review outcomes.
+            quantitative: "Quarterly reviews; 50-70% of rules reviewed against current threats."
+          4:
+            qualitative: >
+              Monthly threat landscape reviews integrated with threat intelligence.
+              Detection priorities are continuously aligned with emerging threats.
+            quantitative: "Monthly reviews; 70-90% rules aligned; automated intel integration."
+          5:
+            qualitative: >
+              Real-time threat landscape monitoring with automated intelligence feeds
+              driving detection priority updates.
+            quantitative: "Continuous monitoring; 90-100% alignment; automated priority updates."
+
+      - id: product_owner_engagement
+        name: Product Owner Engagement
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No engagement between detection engineering and product/platform owners.
+              Detection needs are not communicated to tool vendors or platform teams.
+            quantitative: "Zero structured engagements with product owners."
+          2:
+            qualitative: >
+              Occasional ad hoc engagement with product owners, typically reactive
+              to issues or gaps discovered during detection development.
+            quantitative: "1-2 engagements per quarter; reactive only."
+          3:
+            qualitative: >
+              Regular engagement with product owners to communicate detection needs,
+              request features, and provide feedback on platform capabilities.
+            quantitative: "Quarterly structured engagements; feature requests tracked."
+          4:
+            qualitative: >
+              Proactive partnership with product owners. Detection requirements are
+              integrated into product roadmaps. Regular feedback loops established.
+            quantitative: "Monthly engagements; >50% of feature requests on product roadmap."
+          5:
+            qualitative: >
+              Continuous, proactive engagement. Detection needs directly influence
+              product development. Joint planning and shared success metrics.
+            quantitative: ">90% of detection requirements reflected in product roadmap changes."
+
+      - id: release_testing
+        name: Release Testing and Validation
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No formal testing before rule deployment. Rules are pushed to production
+              without validation.
+            quantitative: "<20% of rules tested before deployment."
+          2:
+            qualitative: >
+              Basic manual testing on some rules before deployment. No standardized
+              testing process or test environments.
+            quantitative: "20-40% of rules tested; manual testing only."
+          3:
+            qualitative: >
+              Standardized testing process with defined test cases. Most rules are
+              tested before deployment in a staging environment.
+            quantitative: "50-70% of rules tested; staging environment available."
+          4:
+            qualitative: >
+              Comprehensive testing including unit tests, integration tests, and
+              emulation-based validation. Rapid deployment capability for emerging threats.
+            quantitative: "70-90% automated testing; 24-hour deployment capability for critical threats."
+          5:
+            qualitative: >
+              Continuous, automated testing with real-time feedback. Full CI/CD
+              pipeline with automated validation before every deployment.
+            quantitative: "90-100% automated testing; continuous validation in CI/CD pipeline."
+
+  # ============================================================
+  # TIER 2: INTERMEDIATE
+  # ============================================================
+  - id: tier_2
+    name: Intermediate
+    description: >
+      Focuses on improving detection quality through tuning, gap analysis,
+      and systematic internal validation.
+    criteria:
+
+      - id: false_positive_reduction
+        name: False Positive Tuning and Reduction
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              Minimal or no tuning of detection rules. High false positive rates
+              accepted as normal, contributing to alert fatigue.
+            quantitative: "No measurable FP reduction efforts."
+          2:
+            qualitative: >
+              Some tuning performed reactively when analysts complain. No systematic
+              tracking of false positive rates.
+            quantitative: "10-25% FP reduction from initial baseline; sporadic tuning."
+          3:
+            qualitative: >
+              Regular tuning cycles with tracked FP rates per rule. Tuning is
+              documented and follows a defined process.
+            quantitative: "25-50% FP reduction; quarterly tuning cycles; FP rates tracked per rule."
+          4:
+            qualitative: >
+              Comprehensive FP management with automated tuning suggestions,
+              risk-based alert scoring, and continuous monitoring.
+            quantitative: ">50% FP reduction; automated tuning recommendations; risk-based scoring."
+          5:
+            qualitative: >
+              Automated and dynamic tuning with machine learning. Near-zero
+              unnecessary alert noise. Continuous optimization.
+            quantitative: ">75% FP reduction from baseline; ML-assisted tuning; continuous optimization."
+
+      - id: gap_analysis
+        name: Gap Analysis and Documentation
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No gap analysis performed. Detection coverage gaps are unknown
+              and undocumented.
+            quantitative: "Zero gaps formally documented."
+          2:
+            qualitative: >
+              Some gaps identified informally, typically after incidents expose
+              missing detections. Documentation is inconsistent.
+            quantitative: "1-3 gaps documented; reactive identification only."
+          3:
+            qualitative: >
+              Regular gap analysis performed against ATT&CK or similar frameworks.
+              Gaps are documented, prioritized, and communicated to stakeholders.
+            quantitative: "5+ gaps documented quarterly; prioritized against threat model."
+          4:
+            qualitative: >
+              Comprehensive gap analysis integrated with threat modeling and risk
+              assessment. Gaps drive the detection roadmap.
+            quantitative: "Continuous gap tracking; gaps integrated into roadmap; stakeholder reporting."
+          5:
+            qualitative: >
+              Automated gap analysis using advanced analytics. Real-time coverage
+              mapping with automated prioritization.
+            quantitative: "Automated continuous gap analysis; real-time coverage dashboards."
+
+      - id: internal_testing
+        name: Internal Testing and Validation
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No internal testing of detection effectiveness. Rules are assumed
+              to work once deployed.
+            quantitative: "Zero internal testing activities."
+          2:
+            qualitative: >
+              Occasional manual testing of high-priority rules. Basic atomic
+              tests run sporadically.
+            quantitative: "<40% emulation coverage; sporadic testing."
+          3:
+            qualitative: >
+              Regular testing program with attack emulation covering major
+              detection categories. Results are documented and tracked.
+            quantitative: "40-60% emulation coverage; quarterly testing cycles."
+          4:
+            qualitative: >
+              Comprehensive internal testing with automated attack emulation,
+              purple team exercises, and continuous validation.
+            quantitative: "60-80% automated emulation coverage; regular purple team exercises."
+          5:
+            qualitative: >
+              Continuous automated testing with real-time validation. Full
+              emulation coverage with automated regression testing.
+            quantitative: ">80% automated coverage; continuous validation; automated regression."
+
+  # ============================================================
+  # TIER 3: ADVANCED
+  # ============================================================
+  - id: tier_3
+    name: Advanced
+    description: >
+      Addresses false negatives, external validation, and advanced threat
+      coverage to ensure detections catch real attacks.
+    criteria:
+
+      - id: false_negative_triage
+        name: False Negative Triage
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No process for identifying or triaging false negatives. Missed
+              detections are only discovered during incident response.
+            quantitative: "Zero FN reduction activities."
+          2:
+            qualitative: >
+              Some false negatives identified through post-incident reviews.
+              Basic tracking of missed detections.
+            quantitative: "50% of tested samples trigger expected alerts."
+          3:
+            qualitative: >
+              Systematic false negative identification through regular testing
+              and validation exercises. Root causes are analyzed.
+            quantitative: "70-90% of tested samples trigger alerts; root cause analysis documented."
+          4:
+            qualitative: >
+              Comprehensive FN management with automated detection validation,
+              coverage testing, and rapid remediation processes.
+            quantitative: "90-100% of tested samples trigger alerts; automated validation."
+          5:
+            qualitative: >
+              Continuous, automated false negative detection using advanced
+              analytics and real-time validation against live threats.
+            quantitative: "Continuous validation; near-zero FN rate on tested scenarios."
+
+      - id: external_validation
+        name: External Validation
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No external validation of detection capabilities. No red team,
+              penetration testing, or third-party assessment of detections.
+            quantitative: "Zero external validation exercises."
+          2:
+            qualitative: >
+              Occasional external validation, typically annual penetration tests
+              with some detection assessment included.
+            quantitative: "1 external validation exercise per year."
+          3:
+            qualitative: >
+              Regular external validation through red team engagements or
+              third-party assessments focused on detection effectiveness.
+            quantitative: ">1 external exercise per year; findings drive detection improvements."
+          4:
+            qualitative: >
+              Multiple external validation exercises annually including red team,
+              purple team, and breach simulation. Systematic feedback integration.
+            quantitative: "Multiple exercises per year; >70% of findings remediated within 30 days."
+          5:
+            qualitative: >
+              Continuous external validation with automated breach and attack
+              simulation (BAS) tools and regular adversary emulation exercises.
+            quantitative: "Continuous BAS; regular adversary emulation; real-time feedback loop."
+
+      - id: advanced_ttp_coverage
+        name: Advanced TTP Coverage
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No coverage of advanced TTPs. Detections focus only on known
+              signatures and basic indicators.
+            quantitative: "Zero advanced TTP detections."
+          2:
+            qualitative: >
+              Limited coverage of some advanced TTPs, typically 1-3 techniques
+              beyond basic signature detection.
+            quantitative: "1-3 advanced TTP detections (e.g., living-off-the-land, fileless)."
+          3:
+            qualitative: >
+              Growing coverage of advanced TTPs informed by threat intelligence.
+              Behavioral detections supplement signature-based rules.
+            quantitative: "3-5 advanced TTP detections; behavioral detection capabilities."
+          4:
+            qualitative: >
+              Comprehensive advanced TTP coverage including sophisticated evasion
+              techniques, novel attack chains, and emerging threats.
+            quantitative: "5+ advanced TTP detections; coverage of evasion and novel techniques."
+          5:
+            qualitative: >
+              Continuous, proactive advanced TTP coverage using AI/ML for anomaly
+              detection and automated response to emerging TTPs.
+            quantitative: "Real-time advanced TTP detection; AI/ML-assisted; automated emerging threat coverage."
+
+  # ============================================================
+  # TIER 4: EXPERT
+  # ============================================================
+  - id: tier_4
+    name: Expert
+    description: >
+      Features proactive threat hunting, advanced automation, AI/LLM integration,
+      and continuous improvement across the detection lifecycle.
+    criteria:
+
+      - id: threat_hunting
+        name: Threat Hunting in Telemetry
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No proactive threat hunting activities. All detection is passive
+              through deployed rules.
+            quantitative: "Zero hunting activities."
+          2:
+            qualitative: >
+              Occasional ad hoc hunting triggered by intelligence or incidents.
+              Findings are not systematically converted to detections.
+            quantitative: "Bi-weekly hunting activities; <30% of findings converted to rules."
+          3:
+            qualitative: >
+              Regular structured hunting program with hypotheses driven by
+              intelligence. Findings are documented and fed into detection development.
+            quantitative: "Weekly hunting; 50-70% of findings integrated into detection rules."
+          4:
+            qualitative: >
+              Comprehensive hunting program with daily activities, advanced
+              analytics, and systematic integration of findings into detections.
+            quantitative: "Daily hunting; >90% of findings integrated; advanced analytics used."
+          5:
+            qualitative: >
+              Automated real-time hunting augmented by AI/ML. Hunting outputs
+              automatically generate detection rule candidates.
+            quantitative: "Real-time automated hunting; AI-assisted hypothesis generation."
+
+      - id: automation_continuous_improvement
+        name: Automation and Continuous Improvement
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No automation of detection engineering tasks. All processes are
+              manual and time-consuming.
+            quantitative: "Zero automation of detection engineering tasks."
+          2:
+            qualitative: >
+              Basic automation of some repetitive tasks (e.g., rule deployment
+              scripts). Mostly manual processes remain.
+            quantitative: "<30% of routine tasks automated."
+          3:
+            qualitative: >
+              Significant automation of rule lifecycle tasks including testing,
+              deployment, and basic tuning. Continuous improvement processes defined.
+            quantitative: "40-60% of tasks automated; improvement metrics tracked."
+          4:
+            qualitative: >
+              Advanced automation covering most of the detection lifecycle.
+              AI/LLM tools used for rule optimization and analysis.
+            quantitative: "70-80% automated; AI/LLM tools in use for optimization."
+          5:
+            qualitative: >
+              Full generative AI/LLM integration throughout the detection lifecycle.
+              Automated rule generation, tuning, and retirement.
+            quantitative: ">90% automated; 40%+ FP reduction via AI; full lifecycle AI integration."
+
+  # ============================================================
+  # ENRICHMENT: PEOPLE & ORGANIZATION
+  # (Derived from detectionengineering.io maturity matrix)
+  # ============================================================
+  - id: enrichment_people
+    name: "Enrichment: People & Organization"
+    description: >
+      Assesses the human and organizational factors that enable effective detection
+      engineering, drawn from Kyle Bailey's Detection Engineering Maturity Matrix.
+    criteria:
+
+      - id: team_structure
+        name: Team Structure and Dedicated Roles
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No dedicated detection engineering roles. Detection work is done
+              part-time by SOC analysts or other security staff as a side task.
+            quantitative: "Zero dedicated detection engineering FTEs."
+          2:
+            qualitative: >
+              One or more staff have detection engineering as a partial responsibility.
+              No formal team structure or career path.
+            quantitative: "Part-time detection engineering; no dedicated team."
+          3:
+            qualitative: >
+              Dedicated detection engineering role(s) or team established. Clear
+              responsibilities and basic career progression defined.
+            quantitative: "At least 1 dedicated FTE; defined role and responsibilities."
+          4:
+            qualitative: >
+              Established detection engineering team with subject matter experts
+              across key domains (host, network, cloud, application).
+            quantitative: "Multi-person team with domain specialization; defined career ladder."
+          5:
+            qualitative: >
+              Mature team with deep specialization, mentorship programs, and
+              influence on organizational security strategy.
+            quantitative: "Full team with domain experts; mentorship program; strategic influence."
+
+      - id: skills_development
+        name: Skills Development and Training
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No formal training or skills development for detection engineering.
+              Learning is self-directed with no organizational support.
+            quantitative: "Zero training budget or programs for detection engineering."
+          2:
+            qualitative: >
+              Some ad hoc training available. Individuals may attend conferences
+              or take courses, but there is no structured program.
+            quantitative: "Occasional training; no structured development program."
+          3:
+            qualitative: >
+              Defined training program covering core detection engineering skills.
+              Regular knowledge sharing sessions within the team.
+            quantitative: "Annual training plan; regular knowledge sharing; defined skill requirements."
+          4:
+            qualitative: >
+              Comprehensive training covering advanced topics. Cross-training
+              with related teams (IR, threat intel, engineering). Certifications supported.
+            quantitative: "Advanced training program; cross-training; certification support."
+          5:
+            qualitative: >
+              Continuous learning culture with advanced training, conference
+              participation, community contribution, and internal research programs.
+            quantitative: "Continuous development; community contribution; internal research."
+
+      - id: leadership_commitment
+        name: Leadership Commitment and Executive Sponsorship
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No executive awareness or sponsorship of detection engineering.
+              The function is not recognized as a distinct capability.
+            quantitative: "Zero executive engagement with detection engineering."
+          2:
+            qualitative: >
+              Some leadership awareness of detection engineering but no formal
+              sponsorship or dedicated budget allocation.
+            quantitative: "Informal awareness; no dedicated budget."
+          3:
+            qualitative: >
+              Executive sponsor identified. Detection engineering has a defined
+              budget and is recognized as a distinct function.
+            quantitative: "Dedicated budget; executive sponsor; function formally recognized."
+          4:
+            qualitative: >
+              Strong executive support with detection engineering metrics reported
+              to leadership. Function influences security investment decisions.
+            quantitative: "Regular executive reporting; metrics-driven investment decisions."
+          5:
+            qualitative: >
+              Detection engineering is a strategic priority. Executive leadership
+              actively champions the function and its value across the organization.
+            quantitative: "Strategic priority; board-level visibility; cross-org influence."
+
+  # ============================================================
+  # ENRICHMENT: PROCESS & GOVERNANCE
+  # (Derived from detectionengineering.io maturity matrix)
+  # ============================================================
+  - id: enrichment_process
+    name: "Enrichment: Process & Governance"
+    description: >
+      Assesses the process maturity and governance structures supporting detection
+      engineering, drawn from Kyle Bailey's Detection Engineering Maturity Matrix.
+    criteria:
+
+      - id: detection_lifecycle
+        name: Detection Lifecycle Workflow
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No defined detection lifecycle. Detections are created and deployed
+              without a structured workflow from request to retirement.
+            quantitative: "No documented lifecycle process."
+          2:
+            qualitative: >
+              Basic lifecycle exists covering creation and deployment, but lacks
+              formal stages for request, review, testing, or retirement.
+            quantitative: "Partial lifecycle; 2-3 stages defined."
+          3:
+            qualitative: >
+              Full detection lifecycle defined covering request, development, review,
+              testing, deployment, monitoring, and retirement.
+            quantitative: "Full lifecycle documented; all stages defined and followed."
+          4:
+            qualitative: >
+              Lifecycle is enforced through tooling and automation. SLAs defined
+              for each stage. Metrics tracked for cycle time and throughput.
+            quantitative: "Automated lifecycle enforcement; SLAs defined; cycle time tracked."
+          5:
+            qualitative: >
+              Optimized lifecycle with continuous improvement. Automated stage
+              transitions, predictive analytics for rule retirement.
+            quantitative: "Fully automated lifecycle; predictive analytics; continuous optimization."
+
+      - id: metrics_tracking
+        name: Metrics and KPI Tracking
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              No metrics tracked for detection engineering performance. Success
+              is anecdotal or unmeasured.
+            quantitative: "Zero detection engineering KPIs defined or tracked."
+          2:
+            qualitative: >
+              Basic metrics tracked informally (e.g., number of rules, alert volume).
+              No formal KPI program or dashboards.
+            quantitative: "1-2 basic metrics tracked informally."
+          3:
+            qualitative: >
+              Defined KPIs covering key areas (coverage, quality, velocity).
+              Regular reporting to stakeholders with dashboards.
+            quantitative: "3-5 KPIs defined; quarterly reporting; dashboards available."
+          4:
+            qualitative: >
+              Comprehensive metrics program with automated collection, trending,
+              and correlation. Metrics drive decision-making.
+            quantitative: "5+ KPIs; automated collection; metrics-driven decisions."
+          5:
+            qualitative: >
+              Advanced analytics on detection engineering performance. Predictive
+              metrics, benchmarking, and continuous optimization based on data.
+            quantitative: "Predictive analytics; benchmarking; data-driven continuous optimization."
+
+      - id: cross_team_collaboration
+        name: Cross-Team Collaboration
+        weight: 1.0
+        levels:
+          1:
+            qualitative: >
+              Detection engineering operates in isolation. No structured collaboration
+              with incident response, threat intelligence, or engineering teams.
+            quantitative: "Zero structured cross-team interactions."
+          2:
+            qualitative: >
+              Ad hoc collaboration with other teams, typically reactive to incidents
+              or specific requests.
+            quantitative: "Occasional reactive collaboration; no formal processes."
+          3:
+            qualitative: >
+              Regular collaboration with IR, threat intel, and engineering teams
+              through defined channels and scheduled touchpoints.
+            quantitative: "Regular scheduled touchpoints; defined collaboration channels."
+          4:
+            qualitative: >
+              Deep integration with related teams. Joint planning, shared objectives,
+              and integrated workflows (e.g., threat intel feeds directly inform detection priorities).
+            quantitative: "Joint planning sessions; shared objectives; integrated workflows."
+          5:
+            qualitative: >
+              Seamless cross-functional collaboration. Detection engineering is
+              embedded in security operations with automated information sharing.
+            quantitative: "Fully integrated operations; automated information sharing; shared metrics."
