@@ -1,0 +1,256 @@
+# DEBMM Assessment Response Template
+# Fill in your organization details and answer each question.
+#
+# For checklist questions: answer true or false
+# For scale questions: answer 1-5
+# For text questions: provide a written response
+#
+# The "evidence" and "confidence" fields are optional but recommended for audits.
+
+metadata:
+  organization: ""
+  assessor_name: ""
+  assessor_role: ""
+  date: ""
+  assessment_type: self  # "self" or "audit"
+  notes: ""
+
+responses:
+
+  # --- Tier 0: Foundation ---
+  T0-Q1:
+    answer:       # true/false - Documented methodology for rule development?
+    evidence: ""
+    confidence:   # high, medium, or low
+  T0-Q2:
+    answer:       # true/false - Peer review before deployment?
+    evidence: ""
+    confidence:
+  T0-Q3:
+    answer:       # 1-5 - Rule development process maturity
+    evidence: ""
+    confidence:
+  T0-Q4:
+    answer:       # true/false - Rules have assigned owners?
+    evidence: ""
+    confidence:
+  T0-Q5:
+    answer:       # 1-5 - Percentage of rules reviewed on schedule
+    evidence: ""
+    confidence:
+  T0-Q6:
+    answer:       # true/false - Documented detection roadmap?
+    evidence: ""
+    confidence:
+  T0-Q7:
+    answer:       # 1-5 - Roadmap maturity
+    evidence: ""
+    confidence:
+  T0-Q8:
+    answer:       # true/false - Threat modeling performed?
+    evidence: ""
+    confidence:
+  T0-Q9:
+    answer:       # 1-5 - Threat modeling frequency
+    evidence: ""
+    confidence:
+  T0-Q10:
+    answer: ""    # text - Describe threat modeling process
+    evidence: ""
+    confidence:
+
+  # --- Tier 1: Basic ---
+  T1-Q1:
+    answer:       # 1-5 - Number of custom baseline rules
+    evidence: ""
+    confidence:
+  T1-Q2:
+    answer:       # 1-5 - ATT&CK technique coverage
+    evidence: ""
+    confidence:
+  T1-Q3:
+    answer:       # true/false - Rules in version control?
+    evidence: ""
+    confidence:
+  T1-Q4:
+    answer:       # true/false - Detection-as-code with CI/CD?
+    evidence: ""
+    confidence:
+  T1-Q5:
+    answer:       # 1-5 - Ruleset management maturity
+    evidence: ""
+    confidence:
+  T1-Q6:
+    answer:       # 1-5 - Telemetry quality and coverage
+    evidence: ""
+    confidence:
+  T1-Q7:
+    answer: ""    # text - Describe telemetry management
+    evidence: ""
+    confidence:
+  T1-Q8:
+    answer:       # 1-5 - Threat landscape review frequency
+    evidence: ""
+    confidence:
+  T1-Q9:
+    answer:       # 1-5 - Product owner engagement
+    evidence: ""
+    confidence:
+  T1-Q10:
+    answer:       # true/false - Rules tested before deployment?
+    evidence: ""
+    confidence:
+  T1-Q11:
+    answer:       # 1-5 - Release testing maturity
+    evidence: ""
+    confidence:
+
+  # --- Tier 2: Intermediate ---
+  T2-Q1:
+    answer:       # true/false - FP rates tracked per rule?
+    evidence: ""
+    confidence:
+  T2-Q2:
+    answer:       # 1-5 - FP reduction maturity
+    evidence: ""
+    confidence:
+  T2-Q3:
+    answer: ""    # text - Describe FP management process
+    evidence: ""
+    confidence:
+  T2-Q4:
+    answer:       # true/false - Regular gap analysis?
+    evidence: ""
+    confidence:
+  T2-Q5:
+    answer:       # 1-5 - Gap analysis maturity
+    evidence: ""
+    confidence:
+  T2-Q6:
+    answer: ""    # text - Describe gap analysis process
+    evidence: ""
+    confidence:
+  T2-Q7:
+    answer:       # true/false - Attack emulation/simulation?
+    evidence: ""
+    confidence:
+  T2-Q8:
+    answer:       # 1-5 - Internal testing maturity
+    evidence: ""
+    confidence:
+
+  # --- Tier 3: Advanced ---
+  T3-Q1:
+    answer:       # true/false - FN triage process?
+    evidence: ""
+    confidence:
+  T3-Q2:
+    answer:       # 1-5 - FN detection and remediation
+    evidence: ""
+    confidence:
+  T3-Q3:
+    answer: ""    # text - Describe FN identification process
+    evidence: ""
+    confidence:
+  T3-Q4:
+    answer:       # true/false - External validation?
+    evidence: ""
+    confidence:
+  T3-Q5:
+    answer:       # 1-5 - External validation maturity
+    evidence: ""
+    confidence:
+  T3-Q6:
+    answer:       # 1-5 - Advanced TTP coverage
+    evidence: ""
+    confidence:
+  T3-Q7:
+    answer: ""    # text - Describe advanced TTP capabilities
+    evidence: ""
+    confidence:
+
+  # --- Tier 4: Expert ---
+  T4-Q1:
+    answer:       # true/false - Proactive threat hunting?
+    evidence: ""
+    confidence:
+  T4-Q2:
+    answer:       # 1-5 - Threat hunting maturity
+    evidence: ""
+    confidence:
+  T4-Q3:
+    answer: ""    # text - Describe hunting program
+    evidence: ""
+    confidence:
+  T4-Q4:
+    answer:       # 1-5 - Automation percentage
+    evidence: ""
+    confidence:
+  T4-Q5:
+    answer:       # true/false - AI/LLM tools used?
+    evidence: ""
+    confidence:
+  T4-Q6:
+    answer: ""    # text - Describe automation and AI integration
+    evidence: ""
+    confidence:
+
+  # --- Enrichment: People & Organization ---
+  EP-Q1:
+    answer:       # 1-5 - Team structure maturity
+    evidence: ""
+    confidence:
+  EP-Q2:
+    answer:       # true/false - Dedicated detection engineer?
+    evidence: ""
+    confidence:
+  EP-Q3:
+    answer:       # 1-5 - Skills development maturity
+    evidence: ""
+    confidence:
+  EP-Q4:
+    answer:       # true/false - Defined training plan?
+    evidence: ""
+    confidence:
+  EP-Q5:
+    answer:       # 1-5 - Executive sponsorship
+    evidence: ""
+    confidence:
+  EP-Q6:
+    answer:       # true/false - Dedicated budget?
+    evidence: ""
+    confidence:
+  EP-Q7:
+    answer: ""    # text - Describe executive engagement
+    evidence: ""
+    confidence:
+
+  # --- Enrichment: Process & Governance ---
+  EG-Q1:
+    answer:       # 1-5 - Detection lifecycle maturity
+    evidence: ""
+    confidence:
+  EG-Q2:
+    answer:       # true/false - Rule retirement process?
+    evidence: ""
+    confidence:
+  EG-Q3:
+    answer:       # true/false - KPIs tracked?
+    evidence: ""
+    confidence:
+  EG-Q4:
+    answer:       # 1-5 - Metrics program maturity
+    evidence: ""
+    confidence:
+  EG-Q5:
+    answer: ""    # text - List KPIs tracked
+    evidence: ""
+    confidence:
+  EG-Q6:
+    answer:       # 1-5 - Cross-team collaboration
+    evidence: ""
+    confidence:
+  EG-Q7:
+    answer:       # true/false - Regular touchpoints with IR/intel?
+    evidence: ""
+    confidence:

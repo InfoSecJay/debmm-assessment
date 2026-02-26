@@ -1,0 +1,251 @@
+# DEBMM Assessment - Example Response
+# This represents a realistic mid-maturity organization (~Tier 1-2 range)
+# with some strong areas and some gaps, typical of a growing SOC.
+
+metadata:
+  organization: "Acme Corp Security Operations"
+  assessor_name: "Jane Smith"
+  assessor_role: "SOC Manager"
+  date: "2026-02-15"
+  assessment_type: self
+  notes: "Annual self-assessment for 2026 planning. Team of 3 analysts, 1 detection engineer."
+
+responses:
+
+  # --- Tier 0: Foundation ---
+  T0-Q1:
+    answer: true
+    evidence: "We have a wiki page documenting our rule development process."
+    confidence: high
+  T0-Q2:
+    answer: true
+    evidence: "All rules require PR review in our Git repo before merge."
+    confidence: high
+  T0-Q3:
+    answer: 3
+    evidence: "Process is documented and followed for most new rules, but legacy rules were not developed this way."
+    confidence: medium
+  T0-Q4:
+    answer: true
+    evidence: "Each rule has an owner tag in the rule metadata."
+    confidence: high
+  T0-Q5:
+    answer: 2
+    evidence: "We review about 60% of rules annually but it's not on a strict schedule."
+    confidence: medium
+  T0-Q6:
+    answer: true
+    evidence: "We maintain a quarterly roadmap in Jira."
+    confidence: high
+  T0-Q7:
+    answer: 3
+    evidence: "Roadmap is reviewed quarterly with the security director."
+    confidence: medium
+  T0-Q8:
+    answer: true
+    evidence: "We did a STRIDE-based threat model last quarter."
+    confidence: medium
+  T0-Q9:
+    answer: 2
+    evidence: "We've done it once this year. Hoping to make it quarterly."
+    confidence: medium
+  T0-Q10:
+    answer: "We performed a STRIDE-based threat modeling exercise last quarter focused on our cloud infrastructure. The output identified 5 high-priority detection gaps around lateral movement and privilege escalation in AWS. We used the results to prioritize our Q2 detection backlog. We haven't established a regular cadence yet."
+    evidence: ""
+    confidence: medium
+
+  # --- Tier 1: Basic ---
+  T1-Q1:
+    answer: 3
+    evidence: "We have about 45 custom rules covering endpoint, network, and cloud."
+    confidence: high
+  T1-Q2:
+    answer: 2
+    evidence: "We estimate roughly 25% coverage of priority ATT&CK techniques but haven't done a formal mapping."
+    confidence: low
+  T1-Q3:
+    answer: true
+    evidence: "All rules are in a GitHub repository."
+    confidence: high
+  T1-Q4:
+    answer: false
+    evidence: "We deploy manually from Git. CI/CD is on the roadmap for Q3."
+    confidence: high
+  T1-Q5:
+    answer: 3
+    evidence: "Rules are in Git with documentation. We're adopting DaC but don't have CI/CD yet."
+    confidence: medium
+  T1-Q6:
+    answer: 2
+    evidence: "We check critical data sources weekly but don't have comprehensive coverage mapping."
+    confidence: medium
+  T1-Q7:
+    answer: "We monitor our top 10 critical data sources (EDR, firewall, cloud trail, AD logs) with basic health checks - mainly checking for data freshness and volume anomalies. We don't have formal telemetry coverage mapping against our detection rules. We know we have gaps in cloud telemetry but haven't quantified them."
+    evidence: ""
+    confidence: medium
+  T1-Q8:
+    answer: 2
+    evidence: "We review threat landscape bi-annually when planning quarterly priorities."
+    confidence: medium
+  T1-Q9:
+    answer: 2
+    evidence: "We've had a couple of meetings with our SIEM vendor about feature requests."
+    confidence: low
+  T1-Q10:
+    answer: true
+    evidence: "We do basic manual testing in a staging environment."
+    confidence: high
+  T1-Q11:
+    answer: 2
+    evidence: "Manual testing on critical rules only. No automated testing."
+    confidence: medium
+
+  # --- Tier 2: Intermediate ---
+  T2-Q1:
+    answer: false
+    evidence: "We track alert volume but not FP rates per rule."
+    confidence: high
+  T2-Q2:
+    answer: 2
+    evidence: "We tune rules when analysts report excessive noise but don't track systematically."
+    confidence: medium
+  T2-Q3:
+    answer: "We tune detection rules reactively when analysts flag high-noise rules in our Slack channel. We reduced alert volume by roughly 15% last quarter by tuning our top 10 noisiest rules. We don't have per-rule FP tracking or a formal tuning cadence. The team lead reviews tuning requests weekly."
+    evidence: ""
+    confidence: medium
+  T2-Q4:
+    answer: false
+    evidence: "We know we have gaps but haven't done a formal ATT&CK-based gap analysis."
+    confidence: high
+  T2-Q5:
+    answer: 2
+    evidence: "Gaps are identified after incidents or when an analyst notices something missing."
+    confidence: medium
+  T2-Q6:
+    answer: "Gap identification is informal. When we have an incident and discover we missed something, we add it to the backlog. We did an informal review against ATT&CK last year and identified about 20 high-priority gaps, but we haven't formalized this process or created a regular cadence."
+    evidence: ""
+    confidence: medium
+  T2-Q7:
+    answer: false
+    evidence: "We don't currently do attack emulation. It's on the roadmap."
+    confidence: high
+  T2-Q8:
+    answer: 1
+    evidence: "No internal testing beyond basic manual validation."
+    confidence: high
+
+  # --- Tier 3: Advanced ---
+  T3-Q1:
+    answer: false
+    evidence: "We don't have a formal FN triage process."
+    confidence: high
+  T3-Q2:
+    answer: 1
+    evidence: "We only discover missed detections during incident investigation."
+    confidence: high
+  T3-Q3:
+    answer: "We don't have a formal false negative identification process. When we investigate incidents, we sometimes discover that our rules should have fired but didn't, and we fix them on a case-by-case basis. We haven't measured our detection trigger rate."
+    evidence: ""
+    confidence: high
+  T3-Q4:
+    answer: true
+    evidence: "We have an annual pentest but it's not focused on detection validation."
+    confidence: medium
+  T3-Q5:
+    answer: 2
+    evidence: "Annual pentest includes some detection assessment but it's not the focus."
+    confidence: medium
+  T3-Q6:
+    answer: 2
+    evidence: "We have a few behavioral detections for PowerShell abuse and LOLBin usage."
+    confidence: medium
+  T3-Q7:
+    answer: "We have 3 detections targeting advanced techniques: encoded PowerShell command detection, suspicious LOLBin usage patterns, and a basic anomaly rule for unusual parent-child process relationships. These were developed after specific incidents. We don't have systematic coverage of advanced TTPs."
+    evidence: ""
+    confidence: medium
+
+  # --- Tier 4: Expert ---
+  T4-Q1:
+    answer: false
+    evidence: "Our detection engineer does occasional ad hoc hunting but it's not a formal program."
+    confidence: high
+  T4-Q2:
+    answer: 1
+    evidence: "No formal hunting program. Occasional ad hoc hunting by the detection engineer."
+    confidence: high
+  T4-Q3:
+    answer: "Our detection engineer occasionally hunts through EDR and SIEM data when there's a new threat advisory or after reading interesting threat research. This happens maybe once a month and findings are shared in team meetings. There's no formal hunting program, hypothesis tracking, or systematic integration of findings into detection rules."
+    evidence: ""
+    confidence: high
+  T4-Q4:
+    answer: 1
+    evidence: "Almost everything is manual. We have a few bash scripts for deployment."
+    confidence: high
+  T4-Q5:
+    answer: false
+    evidence: "We haven't started using AI/LLM tools for detection work."
+    confidence: high
+  T4-Q6:
+    answer: "We have a small set of bash scripts that help with rule deployment and basic formatting checks. All other processes are manual including rule development, testing, tuning, and documentation. We haven't explored AI/LLM tools for detection engineering yet but are interested."
+    evidence: ""
+    confidence: high
+
+  # --- Enrichment: People & Organization ---
+  EP-Q1:
+    answer: 3
+    evidence: "We have 1 dedicated detection engineer and 3 SOC analysts who assist."
+    confidence: high
+  EP-Q2:
+    answer: true
+    evidence: "We hired a dedicated detection engineer 18 months ago."
+    confidence: high
+  EP-Q3:
+    answer: 2
+    evidence: "Training is mainly self-directed with some conference attendance."
+    confidence: medium
+  EP-Q4:
+    answer: false
+    evidence: "No formal training plan. We support conference attendance when budget allows."
+    confidence: high
+  EP-Q5:
+    answer: 3
+    evidence: "Our CISO is aware and supportive. We have a dedicated budget line."
+    confidence: high
+  EP-Q6:
+    answer: true
+    evidence: "Detection engineering has a budget line under the SOC budget."
+    confidence: high
+  EP-Q7:
+    answer: "Our CISO is aware of and supportive of the detection engineering function. We have a dedicated budget line for tooling and one FTE. The security director receives quarterly updates on detection coverage and alert metrics. However, detection engineering metrics aren't reported to the executive team beyond the CISO."
+    evidence: ""
+    confidence: high
+
+  # --- Enrichment: Process & Governance ---
+  EG-Q1:
+    answer: 2
+    evidence: "We have creation and deployment stages but not a full lifecycle."
+    confidence: medium
+  EG-Q2:
+    answer: false
+    evidence: "We don't have a formal retirement process. Old rules accumulate."
+    confidence: high
+  EG-Q3:
+    answer: false
+    evidence: "We track alert volume and rule count but not formal KPIs."
+    confidence: high
+  EG-Q4:
+    answer: 2
+    evidence: "Basic metrics like rule count and alert volume tracked informally."
+    confidence: medium
+  EG-Q5:
+    answer: "We informally track: total number of detection rules (currently 45), weekly alert volume (~2,500/week), and rules deployed per quarter (averaging 3-5). These are pulled manually from our SIEM and shared in monthly team meetings. We don't track coverage metrics, MTTD, rule quality scores, or tuning velocity."
+    evidence: ""
+    confidence: medium
+  EG-Q6:
+    answer: 3
+    evidence: "We have weekly standups with IR team and monthly meetings with threat intel."
+    confidence: high
+  EG-Q7:
+    answer: true
+    evidence: "Weekly sync with IR, monthly with threat intel, quarterly with engineering."
+    confidence: high
