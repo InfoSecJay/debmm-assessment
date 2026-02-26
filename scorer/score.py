@@ -10,6 +10,7 @@ Usage:
     python score.py <response.yaml> [--rubric <rubric.yaml>] [--questionnaire <questionnaire.yaml>]
     python score.py <response.yaml> --json          # Output raw JSON
     python score.py <response.yaml> --report out.md # Generate markdown report
+    python score.py --from-xlsx filled.xlsx          # Score from a filled-out spreadsheet
 """
 
 import argparse
@@ -29,6 +30,72 @@ DEFAULT_QUESTIONNAIRE = PROJECT_ROOT / "questionnaire" / "questionnaire.yaml"
 def load_yaml(path: Path) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+def load_xlsx_responses(xlsx_path: Path, questionnaire_path: Path) -> dict:
+    """Parse a filled-out DEBMM assessment spreadsheet into a response dict.
+
+    Reads the Assessment tab and extracts answers by matching question IDs
+    in column A to answer values in column F (Your Answer).
+    """
+    from openpyxl import load_workbook
+
+    wb = load_workbook(xlsx_path, data_only=True)
+    ws = wb["Assessment"]
+
+    questionnaire = load_yaml(questionnaire_path)
+    q_index = {q["id"]: q for q in questionnaire["questions"]}
+
+    # Read metadata from fixed cells
+    metadata = {
+        "organization": ws["C3"].value or "",
+        "assessor_name": ws["C4"].value or "",
+        "assessor_role": ws["C5"].value or "",
+        "date": str(ws["C6"].value or ""),
+        "assessment_type": str(ws["C7"].value or "self").lower().replace("-", "_").replace("self_assessment", "self"),
+    }
+
+    # Scan rows for question IDs in column A, answers in column F, evidence in column H
+    responses = {}
+    for row in ws.iter_rows(min_row=2, max_col=8):
+        cell_a = row[0].value  # Column A: ID
+        cell_f = row[5].value  # Column F: Answer
+        cell_h = row[7].value  # Column H: Evidence
+
+        if cell_a is None or cell_a not in q_index:
+            continue
+
+        qid = cell_a
+        q_def = q_index[qid]
+        answer = cell_f
+        evidence = cell_h or ""
+
+        # Convert answer based on question type
+        if q_def["type"] == "checklist":
+            if isinstance(answer, str):
+                answer = answer.strip().lower() in ("yes", "true", "1")
+            elif isinstance(answer, bool):
+                pass
+            else:
+                answer = None
+        elif q_def["type"] == "scale":
+            if isinstance(answer, (int, float)):
+                answer = int(answer)
+            elif isinstance(answer, str) and answer.strip().isdigit():
+                answer = int(answer.strip())
+            else:
+                answer = None
+        elif q_def["type"] == "text":
+            answer = str(answer).strip() if answer else ""
+
+        responses[qid] = {
+            "answer": answer,
+            "evidence": evidence,
+        }
+
+    wb.close()
+
+    return {"metadata": metadata, "responses": responses}
 
 
 def build_question_index(questionnaire: dict) -> dict:
@@ -496,7 +563,8 @@ def main():
         description="Score a DEBMM assessment response.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("response", type=Path, help="Path to completed response YAML")
+    parser.add_argument("response", type=Path, nargs="?", help="Path to completed response YAML")
+    parser.add_argument("--from-xlsx", type=Path, help="Score from a filled-out Excel spreadsheet")
     parser.add_argument("--rubric", type=Path, default=DEFAULT_RUBRIC, help="Path to rubric YAML")
     parser.add_argument(
         "--questionnaire", type=Path, default=DEFAULT_QUESTIONNAIRE,
@@ -508,9 +576,9 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.response.exists():
-        print(f"Error: Response file not found: {args.response}", file=sys.stderr)
-        sys.exit(1)
+    if not args.response and not args.from_xlsx:
+        parser.error("Provide a response YAML file or use --from-xlsx with an Excel file.")
+
     if not args.rubric.exists():
         print(f"Error: Rubric file not found: {args.rubric}", file=sys.stderr)
         sys.exit(1)
@@ -518,7 +586,24 @@ def main():
         print(f"Error: Questionnaire file not found: {args.questionnaire}", file=sys.stderr)
         sys.exit(1)
 
-    results = run_scoring(args.rubric, args.questionnaire, args.response)
+    if args.from_xlsx:
+        if not args.from_xlsx.exists():
+            print(f"Error: Excel file not found: {args.from_xlsx}", file=sys.stderr)
+            sys.exit(1)
+        response_data = load_xlsx_responses(args.from_xlsx, args.questionnaire)
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False, encoding="utf-8") as f:
+            yaml.dump(response_data, f, default_flow_style=False)
+            temp_path = Path(f.name)
+        try:
+            results = run_scoring(args.rubric, args.questionnaire, temp_path)
+        finally:
+            temp_path.unlink()
+    else:
+        if not args.response.exists():
+            print(f"Error: Response file not found: {args.response}", file=sys.stderr)
+            sys.exit(1)
+        results = run_scoring(args.rubric, args.questionnaire, args.response)
 
     if args.json_out:
         with open(args.json_out, "w", encoding="utf-8") as f:

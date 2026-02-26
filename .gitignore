@@ -9,3 +9,5 @@ build/
 venv/
 example-report.md
 example-results.json
+debmm-assessment.xlsx
+debmm-assessment-audit.xlsx
