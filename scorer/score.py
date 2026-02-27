@@ -35,7 +35,7 @@ def load_xlsx_responses(xlsx_path: Path, questionnaire_path: Path) -> dict:
     """Parse a filled-out DEBMM assessment spreadsheet into a response dict.
 
     Reads the Assessment tab and extracts answers by matching question IDs
-    in column A to answer values in column F (Your Answer).
+    in column A to answer values in column D (Your Answer).
     """
     from openpyxl import load_workbook
 
@@ -45,21 +45,21 @@ def load_xlsx_responses(xlsx_path: Path, questionnaire_path: Path) -> dict:
     questionnaire = load_yaml(questionnaire_path)
     q_index = {q["id"]: q for q in questionnaire["questions"]}
 
-    # Read metadata from fixed cells
+    # Read metadata from fixed cells (labels in A, values in B)
     metadata = {
-        "organization": ws["C3"].value or "",
-        "assessor_name": ws["C4"].value or "",
-        "assessor_role": ws["C5"].value or "",
-        "date": str(ws["C6"].value or ""),
-        "assessment_type": str(ws["C7"].value or "self").lower().replace("-", "_").replace("self_assessment", "self"),
+        "organization": ws["B3"].value or "",
+        "assessor_name": ws["B4"].value or "",
+        "assessor_role": ws["B5"].value or "",
+        "date": str(ws["B6"].value or ""),
+        "assessment_type": str(ws["B7"].value or "self").lower().replace("-", "_").replace("self_assessment", "self"),
     }
 
-    # Scan rows for question IDs in column A, answers in column F, evidence in column H
+    # Scan rows for question IDs in column A, answers in column D, evidence in column F
     responses = {}
-    for row in ws.iter_rows(min_row=2, max_col=8):
+    for row in ws.iter_rows(min_row=2, max_col=6):
         cell_a = row[0].value  # Column A: ID
-        cell_f = row[5].value  # Column F: Answer
-        cell_h = row[7].value  # Column H: Evidence
+        cell_f = row[3].value  # Column D: Answer
+        cell_h = row[5].value  # Column F: Evidence (audit mode)
 
         if cell_a is None or cell_a not in q_index:
             continue
