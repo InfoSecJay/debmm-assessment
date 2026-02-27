@@ -739,10 +739,9 @@ def build_dashboard_tab(wb: Workbook, rubric: dict, questionnaire: dict,
     ws.cell(row=row, column=5).border = THIN_BORDER
 
     total_q = len(question_rows)
-    completion_formula = (
-        f'=COUNTA(Assessment!E{question_rows[0]["row"]}:E{question_rows[-1]["row"]})'
-        f'&" / {total_q}"'
-    )
+    # Reference only actual question cells to avoid counting header rows
+    q_cells = ",".join(f"Assessment!E{qr['row']}" for qr in question_rows)
+    completion_formula = f'=COUNTA({q_cells})&" / {total_q}"'
     ws.cell(row=row, column=6, value=completion_formula)
     style_cell(ws.cell(row=row, column=6), FONT_SCORE_LARGE, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
 
@@ -1361,9 +1360,8 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
     ws.cell(row=row, column=1, value="Completion")
     style_cell(ws.cell(row=row, column=1), FONT_BODY_BOLD, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
     total_q = len(question_rows)
-    ws.cell(row=row, column=2,
-            value=f'=COUNTA(Assessment!E{question_rows[0]["row"]}:E{question_rows[-1]["row"]})'
-                  f'&" / {total_q}"')
+    q_cells = ",".join(f"Assessment!E{qr['row']}" for qr in question_rows)
+    ws.cell(row=row, column=2, value=f'=COUNTA({q_cells})&" / {total_q}"')
     style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
     row += 2
 
@@ -1417,41 +1415,10 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
         tier_score_cells[tid] = f"C{row}"
         row += 1
 
-    # Fill in Progression column: Complete / Current / In Progress / Not Started
-    # Logic: "Complete" if this tier and all below pass. "Current" if the one being worked on.
-    # We build cumulative pass checks, then find the achieved tier.
-    for i, tid in enumerate(core_tier_ids_ordered):
-        trow = tier_score_rows[tid]
+    # Progression and Achieved Tier formulas are deferred until after
+    # Table 3 so we can use per-criterion checks (matching Dashboard logic).
 
-        # All tiers through this one pass?
-        cumul_checks = [f"{tier_score_cells[core_tier_ids_ordered[j]]}>=3"
-                        for j in range(i + 1)]
-        all_pass = f"AND({','.join(cumul_checks)})"
-
-        # All tiers through previous one pass? (for "Current" detection)
-        if i > 0:
-            prev_checks = [f"{tier_score_cells[core_tier_ids_ordered[j]]}>=3"
-                           for j in range(i)]
-            prev_pass = f"AND({','.join(prev_checks)})"
-        else:
-            prev_pass = "TRUE"
-
-        # Has any score at all in this tier?
-        has_score = f'{tier_score_cells[tid]}<>""'
-
-        # Progression formula:
-        # Complete = all through this tier pass
-        # Current = previous tiers pass but this one doesn't yet (and has scores)
-        # In Progress = has scores but previous tiers don't all pass
-        # Not Started = no scores
-        formula = (
-            f'=IF({tier_score_cells[tid]}="","Not Started",'
-            f'IF({all_pass},"Complete",'
-            f'IF({prev_pass},"Current","In Progress")))'
-        )
-        ws.cell(row=trow, column=6, value=formula)
-
-    # Conditional formatting for progression column
+    # Conditional formatting for progression column (applied now, formulas later)
     prog_range = f"F{tier_table_start + 1}:F{row - 1}"
     ws.conditional_formatting.add(
         prog_range,
@@ -1480,6 +1447,7 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
     row += 1
 
     all_crit_score_cells = []
+    core_crit_cells_by_tier = {tid: [] for tid in core_tier_ids_ordered}
 
     for tc in all_tiers:
         crit_id = tc["crit_id"]
@@ -1512,6 +1480,8 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
         style_cell(ws.cell(row=row, column=6), FONT_BODY, FILL_WHITE, ALIGN_CENTER, HAIRLINE_BOTTOM)
 
         all_crit_score_cells.append(f"D{row}")
+        if tier_id in core_crit_cells_by_tier:
+            core_crit_cells_by_tier[tier_id].append(f"D{row}")
         row += 1
 
     # Conditional formatting on criterion scores
@@ -1532,22 +1502,54 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
                 value=f'=IF(COUNT({all_refs})=0,"",ROUND(AVERAGE({all_refs}),2))')
         ws.cell(row=overall_score_row, column=2).number_format = "0.00"
 
-    # Achieved tier — same cumulative logic
+    # ── Per-criterion tier checks (matches Dashboard logic) ───────────
+    # Tier passes only when ALL individual criteria in that tier score >= 3.0
+    def tier_crit_check(tid):
+        cells = core_crit_cells_by_tier.get(tid, [])
+        if not cells:
+            return "TRUE"
+        return f"AND({','.join(f'{c}>=3' for c in cells)})"
+
+    # Fill in Progression column using per-criterion checks
+    for i, tid in enumerate(core_tier_ids_ordered):
+        trow = tier_score_rows[tid]
+
+        # All tiers through this one pass? (per-criterion)
+        cumul_checks = [tier_crit_check(core_tier_ids_ordered[j]) for j in range(i + 1)]
+        all_pass = f"AND({','.join(cumul_checks)})"
+
+        # All tiers through previous one pass?
+        if i > 0:
+            prev_checks = [tier_crit_check(core_tier_ids_ordered[j]) for j in range(i)]
+            prev_pass = f"AND({','.join(prev_checks)})"
+        else:
+            prev_pass = "TRUE"
+
+        # Progression: Complete / Current / In Progress / Not Started
+        formula = (
+            f'=IF({tier_score_cells[tid]}="","Not Started",'
+            f'IF({all_pass},"Complete",'
+            f'IF({prev_pass},"Current","In Progress")))'
+        )
+        ws.cell(row=trow, column=6, value=formula)
+
+    # Achieved tier — cumulative per-criterion logic
     tier_display = {
         "tier_0": "Tier 0: Foundation", "tier_1": "Tier 1: Basic",
         "tier_2": "Tier 2: Intermediate", "tier_3": "Tier 3: Advanced",
         "tier_4": "Tier 4: Expert",
     }
 
-    def tier_pass_check(idx):
-        checks = [f"{tier_score_cells[core_tier_ids_ordered[j]]}>=3" for j in range(idx + 1)]
-        return f"AND({','.join(checks)})"
+    cumul_report = {}
+    for i, tid in enumerate(core_tier_ids_ordered):
+        checks = [tier_crit_check(core_tier_ids_ordered[j]) for j in range(i + 1)]
+        cumul_report[tid] = f"AND({','.join(checks)})"
 
-    tier_f = f'=IF({tier_pass_check(4)},"{tier_display["tier_4"]}",'
-    tier_f += f'IF({tier_pass_check(3)},"{tier_display["tier_3"]}",'
-    tier_f += f'IF({tier_pass_check(2)},"{tier_display["tier_2"]}",'
-    tier_f += f'IF({tier_pass_check(1)},"{tier_display["tier_1"]}",'
-    tier_f += f'IF({tier_pass_check(0)},"{tier_display["tier_0"]}",'
+    tier_f = f'=IF({cumul_report["tier_4"]},"{tier_display["tier_4"]}",'
+    tier_f += f'IF({cumul_report["tier_3"]},"{tier_display["tier_3"]}",'
+    tier_f += f'IF({cumul_report["tier_2"]},"{tier_display["tier_2"]}",'
+    tier_f += f'IF({cumul_report["tier_1"]},"{tier_display["tier_1"]}",'
+    tier_f += f'IF({cumul_report["tier_0"]},"{tier_display["tier_0"]}",'
     tier_f += '"Below Foundation")))))'
     ws.cell(row=achieved_tier_row, column=2, value=tier_f)
 
