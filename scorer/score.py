@@ -35,7 +35,7 @@ def load_xlsx_responses(xlsx_path: Path, questionnaire_path: Path) -> dict:
     """Parse a filled-out DEBMM assessment spreadsheet into a response dict.
 
     Reads the Assessment tab and extracts answers by matching question IDs
-    in column A to answer values in column D (Your Answer).
+    in column B to answer values in column E (Your Answer).
     """
     from openpyxl import load_workbook
 
@@ -45,21 +45,21 @@ def load_xlsx_responses(xlsx_path: Path, questionnaire_path: Path) -> dict:
     questionnaire = load_yaml(questionnaire_path)
     q_index = {q["id"]: q for q in questionnaire["questions"]}
 
-    # Read metadata from fixed cells (labels in A, values in B)
+    # Read metadata from fixed cells (labels in C, values in D)
     metadata = {
-        "organization": ws["B3"].value or "",
-        "assessor_name": ws["B4"].value or "",
-        "assessor_role": ws["B5"].value or "",
-        "date": str(ws["B6"].value or ""),
-        "assessment_type": str(ws["B7"].value or "self").lower().replace("-", "_").replace("self_assessment", "self"),
+        "organization": ws["D4"].value or "",
+        "assessor_name": ws["D5"].value or "",
+        "assessor_role": ws["D6"].value or "",
+        "date": str(ws["D7"].value or ""),
+        "assessment_type": str(ws["D8"].value or "self").lower().replace("-", "_").replace("self_assessment", "self"),
     }
 
-    # Scan rows for question IDs in column A, answers in column D, evidence in column F
+    # Scan rows for question IDs in column B, answers in column E, evidence in column G
     responses = {}
-    for row in ws.iter_rows(min_row=2, max_col=6):
-        cell_a = row[0].value  # Column A: ID
-        cell_f = row[3].value  # Column D: Answer
-        cell_h = row[5].value  # Column F: Evidence (audit mode)
+    for row in ws.iter_rows(min_row=2, max_col=8):
+        cell_a = row[1].value  # Column B: ID
+        cell_f = row[4].value  # Column E: Answer
+        cell_h = row[6].value  # Column G: Evidence (audit mode)
 
         if cell_a is None or cell_a not in q_index:
             continue
