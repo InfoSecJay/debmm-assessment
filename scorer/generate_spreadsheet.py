@@ -1044,7 +1044,7 @@ def build_dashboard_tab(wb: Workbook, rubric: dict, questionnaire: dict,
         cells = tier_check_parts.get(tid, [])
         if not cells:
             return "TRUE"
-        return f"AND({','.join(f'{c}>=3' for c in cells)})"
+        return f"AND({','.join(f'ISNUMBER({c}),{c}>=3' for c in cells)})"
 
     cumul = {}
     for i, tid in enumerate(core_tiers_ordered):
@@ -1508,7 +1508,7 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
         cells = core_crit_cells_by_tier.get(tid, [])
         if not cells:
             return "TRUE"
-        return f"AND({','.join(f'{c}>=3' for c in cells)})"
+        return f"AND({','.join(f'ISNUMBER({c}),{c}>=3' for c in cells)})"
 
     # Fill in Progression column using per-criterion checks
     for i, tid in enumerate(core_tier_ids_ordered):
