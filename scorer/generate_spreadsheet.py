@@ -1282,6 +1282,279 @@ def build_rubric_tab(wb: Workbook, rubric: dict):
     return ws
 
 
+# ── Tab 5: Report Data ────────────────────────────────────────────────────────
+
+
+def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
+    """Build a flat data sheet optimized for Power BI / reporting consumption.
+
+    Three tables:
+      1. Summary (A1:B6) — key metrics
+      2. Tier Progression (A9:F14) — tier status with Complete/Current/In Progress/Not Started
+      3. Criterion Breakdown (A17:Gxx) — every criterion with section, category, score, level, status
+    """
+    ws = wb.create_sheet("Report Data")
+    ws.sheet_properties.tabColor = STEEL
+
+    col_widths = {"A": 18, "B": 30, "C": 22, "D": 34, "E": 12, "F": 16, "G": 16}
+    for col, width in col_widths.items():
+        ws.column_dimensions[col].width = width
+
+    # ── Build criterion → question row mappings ───────────────────────
+    crit_to_rows = {}
+    for qr in question_rows:
+        crit_to_rows.setdefault(qr["criterion"], []).append(qr)
+
+    core_tier_ids_ordered = ["tier_0", "tier_1", "tier_2", "tier_3", "tier_4"]
+    core_tier_names = {
+        "tier_0": "Foundation", "tier_1": "Basic", "tier_2": "Intermediate",
+        "tier_3": "Advanced", "tier_4": "Expert",
+    }
+
+    # Collect all tier → criteria structure
+    all_tiers = []
+    for tier in rubric["tiers"]:
+        for crit in tier["criteria"]:
+            all_tiers.append({
+                "tier_id": tier["id"],
+                "tier_name": tier["name"],
+                "crit_id": crit["id"],
+                "crit_name": crit["name"],
+            })
+
+    # ── Table 1: Summary ──────────────────────────────────────────────
+    row = 1
+    ws.cell(row=row, column=1, value="SUMMARY")
+    style_cell(ws.cell(row=row, column=1), FONT_COL_HEADER, FILL_STEEL, ALIGN_LEFT, THIN_BORDER)
+    ws.cell(row=row, column=2)
+    style_cell(ws.cell(row=row, column=2), FONT_COL_HEADER, FILL_STEEL, ALIGN_LEFT, THIN_BORDER)
+    row += 1
+
+    summary_items = [
+        ("Organization", "=Assessment!D4"),
+        ("Assessor", "=Assessment!D5"),
+        ("Date", "=Assessment!D7"),
+        ("Assessment Type", "=Assessment!D8"),
+    ]
+    for label, formula in summary_items:
+        ws.cell(row=row, column=1, value=label)
+        style_cell(ws.cell(row=row, column=1), FONT_BODY_BOLD, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+        ws.cell(row=row, column=2, value=formula)
+        style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+        row += 1
+
+    # Overall score and tier will be filled after we compute criterion score cells
+    overall_score_row = row
+    ws.cell(row=row, column=1, value="Overall Score")
+    style_cell(ws.cell(row=row, column=1), FONT_BODY_BOLD, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+    style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+    ws.cell(row=row, column=2).number_format = "0.00"
+    row += 1
+
+    achieved_tier_row = row
+    ws.cell(row=row, column=1, value="Achieved Tier")
+    style_cell(ws.cell(row=row, column=1), FONT_BODY_BOLD, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+    style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+    row += 1
+
+    completion_row = row
+    ws.cell(row=row, column=1, value="Completion")
+    style_cell(ws.cell(row=row, column=1), FONT_BODY_BOLD, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+    total_q = len(question_rows)
+    ws.cell(row=row, column=2,
+            value=f'=COUNTA(Assessment!E{question_rows[0]["row"]}:E{question_rows[-1]["row"]})'
+                  f'&" / {total_q}"')
+    style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+    row += 2
+
+    # ── Table 2: Tier Progression ─────────────────────────────────────
+    tier_table_start = row
+    tier_headers = ["Tier", "Tier Name", "Score", "Level", "Status", "Progression"]
+    for col_idx, hdr in enumerate(tier_headers, 1):
+        ws.cell(row=row, column=col_idx, value=hdr)
+        style_cell(ws.cell(row=row, column=col_idx), FONT_COL_HEADER, FILL_NAVY, ALIGN_CENTER, THIN_BORDER)
+    row += 1
+
+    # Build tier score formulas from question data
+    tier_score_rows = {}  # tier_id -> row in this table
+    tier_score_cells = {}  # tier_id -> cell ref for the score
+
+    for i, tid in enumerate(core_tier_ids_ordered):
+        tier_name = core_tier_names[tid]
+        tier_crits = [tc for tc in all_tiers if tc["tier_id"] == tid]
+
+        ws.cell(row=row, column=1, value=f"T{i}")
+        style_cell(ws.cell(row=row, column=1), FONT_BODY_BOLD, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
+
+        ws.cell(row=row, column=2, value=tier_name)
+        style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, THIN_BORDER)
+
+        # Score = average of all question scores in this tier
+        tier_q_refs = []
+        for tc in tier_crits:
+            for qr in crit_to_rows.get(tc["crit_id"], []):
+                tier_q_refs.append(f"Assessment!F{qr['row']}")
+
+        if tier_q_refs:
+            refs_str = ",".join(tier_q_refs)
+            ws.cell(row=row, column=3,
+                    value=f'=IF(COUNT({refs_str})=0,"",AVERAGE({refs_str}))')
+        ws.cell(row=row, column=3).number_format = "0.00"
+        style_cell(ws.cell(row=row, column=3), FONT_BODY_BOLD, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
+
+        # Level
+        ws.cell(row=row, column=4, value=level_formula(f"C{row}"))
+        style_cell(ws.cell(row=row, column=4), FONT_BODY, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
+
+        # Status (Pass / Below Target)
+        ws.cell(row=row, column=5, value=status_formula(f"C{row}"))
+        style_cell(ws.cell(row=row, column=5), FONT_BODY, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
+
+        # Progression will be filled after all tier scores exist
+        style_cell(ws.cell(row=row, column=6), FONT_BODY_BOLD, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
+
+        tier_score_rows[tid] = row
+        tier_score_cells[tid] = f"C{row}"
+        row += 1
+
+    # Fill in Progression column: Complete / Current / In Progress / Not Started
+    # Logic: "Complete" if this tier and all below pass. "Current" if the one being worked on.
+    # We build cumulative pass checks, then find the achieved tier.
+    for i, tid in enumerate(core_tier_ids_ordered):
+        trow = tier_score_rows[tid]
+
+        # All tiers through this one pass?
+        cumul_checks = [f"{tier_score_cells[core_tier_ids_ordered[j]]}>=3"
+                        for j in range(i + 1)]
+        all_pass = f"AND({','.join(cumul_checks)})"
+
+        # All tiers through previous one pass? (for "Current" detection)
+        if i > 0:
+            prev_checks = [f"{tier_score_cells[core_tier_ids_ordered[j]]}>=3"
+                           for j in range(i)]
+            prev_pass = f"AND({','.join(prev_checks)})"
+        else:
+            prev_pass = "TRUE"
+
+        # Has any score at all in this tier?
+        has_score = f'{tier_score_cells[tid]}<>""'
+
+        # Progression formula:
+        # Complete = all through this tier pass
+        # Current = previous tiers pass but this one doesn't yet (and has scores)
+        # In Progress = has scores but previous tiers don't all pass
+        # Not Started = no scores
+        formula = (
+            f'=IF({tier_score_cells[tid]}="","Not Started",'
+            f'IF({all_pass},"Complete",'
+            f'IF({prev_pass},"Current","In Progress")))'
+        )
+        ws.cell(row=trow, column=6, value=formula)
+
+    # Conditional formatting for progression column
+    prog_range = f"F{tier_table_start + 1}:F{row - 1}"
+    ws.conditional_formatting.add(
+        prog_range,
+        CellIsRule(operator="equal", formula=['"Complete"'], fill=FILL_SCORE_GREEN),
+    )
+    ws.conditional_formatting.add(
+        prog_range,
+        CellIsRule(operator="equal", formula=['"Current"'], fill=FILL_SCORE_YELLOW),
+    )
+    ws.conditional_formatting.add(
+        prog_range,
+        CellIsRule(operator="equal", formula=['"In Progress"'], fill=FILL_SCORE_ORANGE),
+    )
+
+    # Conditional formatting on tier scores
+    apply_conditional_formatting(ws, f"C{tier_table_start + 1}:C{row - 1}")
+
+    row += 1
+
+    # ── Table 3: Criterion Breakdown ──────────────────────────────────
+    crit_headers = ["Section", "Category", "Criterion", "Score", "Level", "Status"]
+    for col_idx, hdr in enumerate(crit_headers, 1):
+        ws.cell(row=row, column=col_idx, value=hdr)
+        style_cell(ws.cell(row=row, column=col_idx), FONT_COL_HEADER, FILL_STEEL, ALIGN_CENTER, THIN_BORDER)
+    crit_table_hdr = row
+    row += 1
+
+    all_crit_score_cells = []
+
+    for tc in all_tiers:
+        crit_id = tc["crit_id"]
+        tier_id = tc["tier_id"]
+        rows_for_crit = crit_to_rows.get(crit_id, [])
+
+        section = "DEBMM Core" if not is_enrichment(tier_id) else "Enrichment"
+        category = tc["tier_name"].replace("Enrichment: ", "")
+
+        ws.cell(row=row, column=1, value=section)
+        style_cell(ws.cell(row=row, column=1), FONT_BODY, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+
+        ws.cell(row=row, column=2, value=category)
+        style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+
+        ws.cell(row=row, column=3, value=tc["crit_name"])
+        style_cell(ws.cell(row=row, column=3), FONT_BODY_BOLD, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+
+        if rows_for_crit:
+            score_refs = [f"Assessment!F{qr['row']}" for qr in rows_for_crit]
+            refs_str = ",".join(score_refs)
+            ws.cell(row=row, column=4, value=f'=IF(COUNT({refs_str})=0,"",AVERAGE({refs_str}))')
+        ws.cell(row=row, column=4).number_format = "0.00"
+        style_cell(ws.cell(row=row, column=4), FONT_BODY_BOLD, FILL_WHITE, ALIGN_CENTER, HAIRLINE_BOTTOM)
+
+        ws.cell(row=row, column=5, value=level_formula(f"D{row}"))
+        style_cell(ws.cell(row=row, column=5), FONT_BODY, FILL_WHITE, ALIGN_CENTER, HAIRLINE_BOTTOM)
+
+        ws.cell(row=row, column=6, value=status_formula(f"D{row}"))
+        style_cell(ws.cell(row=row, column=6), FONT_BODY, FILL_WHITE, ALIGN_CENTER, HAIRLINE_BOTTOM)
+
+        all_crit_score_cells.append(f"D{row}")
+        row += 1
+
+    # Conditional formatting on criterion scores
+    apply_conditional_formatting(ws, f"D{crit_table_hdr + 1}:D{row - 1}")
+    ws.conditional_formatting.add(
+        f"F{crit_table_hdr + 1}:F{row - 1}",
+        CellIsRule(operator="equal", formula=['"✓ Pass"'], fill=FILL_SCORE_GREEN),
+    )
+    ws.conditional_formatting.add(
+        f"F{crit_table_hdr + 1}:F{row - 1}",
+        CellIsRule(operator="equal", formula=['"✗ Below Target"'], fill=FILL_SCORE_RED),
+    )
+
+    # ── Fill in summary overall score and tier ────────────────────────
+    if all_crit_score_cells:
+        all_refs = ",".join(all_crit_score_cells)
+        ws.cell(row=overall_score_row, column=2,
+                value=f'=IF(COUNT({all_refs})=0,"",ROUND(AVERAGE({all_refs}),2))')
+        ws.cell(row=overall_score_row, column=2).number_format = "0.00"
+
+    # Achieved tier — same cumulative logic
+    tier_display = {
+        "tier_0": "Tier 0: Foundation", "tier_1": "Tier 1: Basic",
+        "tier_2": "Tier 2: Intermediate", "tier_3": "Tier 3: Advanced",
+        "tier_4": "Tier 4: Expert",
+    }
+
+    def tier_pass_check(idx):
+        checks = [f"{tier_score_cells[core_tier_ids_ordered[j]]}>=3" for j in range(idx + 1)]
+        return f"AND({','.join(checks)})"
+
+    tier_f = f'=IF({tier_pass_check(4)},"{tier_display["tier_4"]}",'
+    tier_f += f'IF({tier_pass_check(3)},"{tier_display["tier_3"]}",'
+    tier_f += f'IF({tier_pass_check(2)},"{tier_display["tier_2"]}",'
+    tier_f += f'IF({tier_pass_check(1)},"{tier_display["tier_1"]}",'
+    tier_f += f'IF({tier_pass_check(0)},"{tier_display["tier_0"]}",'
+    tier_f += '"Below Foundation")))))'
+    ws.cell(row=achieved_tier_row, column=2, value=tier_f)
+
+    ws.freeze_panes = "A2"
+    return ws
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 
@@ -1299,6 +1572,7 @@ def generate_spreadsheet(
     _, question_rows, header_row = build_assessment_tab(wb, questionnaire, rubric, mode)
     build_dashboard_tab(wb, rubric, questionnaire, question_rows, header_row)
     build_rubric_tab(wb, rubric)
+    build_report_data_tab(wb, rubric, question_rows)
 
     wb.save(output_path)
     return output_path
