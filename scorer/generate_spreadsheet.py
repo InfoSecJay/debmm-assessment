@@ -687,6 +687,7 @@ def build_dashboard_tab(wb: Workbook, rubric: dict, questionnaire: dict,
     # Hidden chart data columns
     for c in ["M", "N", "O", "P"]:
         ws.column_dimensions[c].width = 18 if c in ("M", "O") else 10
+        ws.column_dimensions[c].hidden = True
 
     # ── Title banner ──────────────────────────────────────────────────
     ws.merge_cells("A1:G1")
@@ -748,17 +749,71 @@ def build_dashboard_tab(wb: Workbook, rubric: dict, questionnaire: dict,
     overall_row = row
     row += 1
 
-    # Explanation row
-    ws.row_dimensions[row].height = 8  # Small spacer
+    # Spacer
+    ws.row_dimensions[row].height = 8
     row += 1
+
+    # Tier explanation — dynamic text based on achieved tier
+    tier_explanations = {
+        "Below Foundation": (
+            "Your organization has not yet achieved Tier 0 (Foundation). This means one or more "
+            "foundational criteria\u2014such as structured rule development, rule maintenance, roadmap "
+            "documentation, or threat modeling\u2014score below the Defined level (3.0). Focus on "
+            "establishing basic, repeatable processes in these areas before advancing to higher tiers."
+        ),
+        "Tier 0: Foundation": (
+            "Your organization has achieved Tier 0 (Foundation). All foundational criteria meet "
+            "the Defined level, meaning you have documented processes for rule development, "
+            "maintenance, roadmaps, and threat modeling. To reach Tier 1, ensure your baseline "
+            "rules, telemetry quality, threat landscape reviews, and release testing also reach "
+            "the Defined level."
+        ),
+        "Tier 1: Basic": (
+            "Your organization has achieved Tier 1 (Basic). You have solid foundations and basic "
+            "detection capabilities in place, including baseline rules, telemetry coverage, and "
+            "release testing at the Defined level. To advance to Tier 2, focus on systematic "
+            "false positive reduction, formal gap analysis, and internal testing and validation."
+        ),
+        "Tier 2: Intermediate": (
+            "Your organization has achieved Tier 2 (Intermediate). Your detection program has "
+            "mature processes for rule development, telemetry management, false positive reduction, "
+            "and gap analysis. To advance to Tier 3, invest in false negative triage, external "
+            "validation (e.g., purple team exercises), and coverage of advanced TTPs."
+        ),
+        "Tier 3: Advanced": (
+            "Your organization has achieved Tier 3 (Advanced). You have a highly capable detection "
+            "program with systematic FN reduction, external validation, and behavioral detection of "
+            "advanced TTPs. To reach Tier 4, develop proactive threat hunting capabilities, adopt "
+            "hypothesis-driven hunting workflows, and integrate automation and AI across the "
+            "detection lifecycle."
+        ),
+        "Tier 4: Expert": (
+            "Your organization has achieved Tier 4 (Expert)\u2014the highest DEBMM tier. Your "
+            "detection engineering program is mature across all dimensions: proactive threat hunting, "
+            "automation of key lifecycle stages, and continuous improvement driven by data. Focus on "
+            "sustaining this level and contributing to the broader detection engineering community."
+        ),
+    }
+
+    # Build nested IF formula for dynamic explanation
+    tier_labels_ordered = [
+        "Tier 4: Expert", "Tier 3: Advanced", "Tier 2: Intermediate",
+        "Tier 1: Basic", "Tier 0: Foundation",
+    ]
+    tier_cell = f"D{overall_row}"
+    explanation_formula = f'=IF({tier_cell}="","",'
+    for label in tier_labels_ordered:
+        text = tier_explanations[label]
+        explanation_formula += f'IF({tier_cell}="{label}","{text}",'
+    explanation_formula += f'"{tier_explanations["Below Foundation"]}"'
+    explanation_formula += ")" * (len(tier_labels_ordered) + 1)
+
     ws.merge_cells(f"B{row}:F{row}")
-    ws.cell(row=row, column=2,
-            value="Your achieved tier is the highest tier where all criteria in that tier "
-                  "and all lower tiers score \u2265 3.0 (Defined level).")
-    style_cell(ws.cell(row=row, column=2), FONT_SMALL_ITALIC, FILL_LIGHT_GRAY, ALIGN_LEFT)
+    ws.cell(row=row, column=2, value=explanation_formula)
+    style_cell(ws.cell(row=row, column=2), FONT_BODY_ITALIC, FILL_LIGHT_GRAY, ALIGN_WRAP)
     for c in range(3, 7):
         ws.cell(row=row, column=c).fill = FILL_LIGHT_GRAY
-    ws.row_dimensions[row].height = 22
+    ws.row_dimensions[row].height = 62
     row += 2
 
     # ── Build mappings ────────────────────────────────────────────────
