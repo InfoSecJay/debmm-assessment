@@ -684,11 +684,6 @@ def build_dashboard_tab(wb: Workbook, rubric: dict, questionnaire: dict,
     col_widths = {"A": 3, "B": 6, "C": 34, "D": 14, "E": 14, "F": 14, "G": 3}
     for col, width in col_widths.items():
         ws.column_dimensions[col].width = width
-    # Hidden chart data columns
-    for c in ["M", "N", "O", "P"]:
-        ws.column_dimensions[c].width = 18 if c in ("M", "O") else 10
-        ws.column_dimensions[c].hidden = True
-
     # ── Title banner ──────────────────────────────────────────────────
     ws.merge_cells("A1:G1")
     ws.row_dimensions[1].height = 56
@@ -702,7 +697,7 @@ def build_dashboard_tab(wb: Workbook, rubric: dict, questionnaire: dict,
     ws.merge_cells("A2:G2")
     ws.row_dimensions[2].height = 24
     c = ws["A2"]
-    c.value = f'  =Assessment!D4'
+    c.value = '="  "&Assessment!D4'
     style_cell(c, FONT_SUBTITLE, FILL_NAVY, Alignment(horizontal="left", vertical="center"))
     for col in "ABCDEFG":
         ws[f"{col}2"].fill = FILL_NAVY
@@ -1062,108 +1057,190 @@ def build_dashboard_tab(wb: Workbook, rubric: dict, questionnaire: dict,
     # Conditional formatting on overall score
     apply_conditional_formatting(ws, f"B{overall_row}:C{overall_row}")
 
-    # ── Charts ────────────────────────────────────────────────────────
-    row += 2
+    ws.freeze_panes = "A3"
 
-    # Chart 1: DEBMM Tier Scores (columns M-N)
+    # Collect chart data for separate chart tabs
     core_tier_row_list = [
         (ts["name"], ts["row"])
         for tid, ts in tier_score_cells.items()
         if tid in core_tier_ids
     ]
-    if core_tier_row_list:
-        chart_row = 2
-        ws.cell(row=chart_row, column=13, value="Tier")
-        ws.cell(row=chart_row, column=14, value="Score")
-        chart_row += 1
-        for name, trow in core_tier_row_list:
-            ws.cell(row=chart_row, column=13, value=name)
-            ws.cell(row=chart_row, column=14, value=f"=D{trow}")
-            ws.cell(row=chart_row, column=14).number_format = "0.00"
-            chart_row += 1
-
-        # Target reference line data
-        target_start = chart_row
-        ws.cell(row=chart_row, column=13, value="Target Tier")
-        ws.cell(row=chart_row, column=14, value="Target")
-        chart_row += 1
-        for name, _ in core_tier_row_list:
-            ws.cell(row=chart_row, column=13, value=name)
-            ws.cell(row=chart_row, column=14, value=3.0)
-            chart_row += 1
-
-        chart1 = BarChart()
-        chart1.type = "col"
-        chart1.style = 10
-        chart1.title = "DEBMM Tier Scores"
-        chart1.y_axis.title = "Score (1\u20145)"
-        chart1.y_axis.scaling.min = 0
-        chart1.y_axis.scaling.max = 5
-        chart1.x_axis.title = None
-        chart1.legend = None
-
-        data1 = Reference(ws, min_col=14, min_row=2, max_row=2 + len(core_tier_row_list))
-        cats1 = Reference(ws, min_col=13, min_row=3, max_row=2 + len(core_tier_row_list))
-        chart1.add_data(data1, titles_from_data=True)
-        chart1.set_categories(cats1)
-
-        # Color the bars MED_BLUE
-        if chart1.series:
-            for pt_idx in range(len(core_tier_row_list)):
-                pt = DataPoint(idx=pt_idx)
-                pt.graphicalProperties.solidFill = MED_BLUE
-                chart1.series[0].data_points.append(pt)
-
-        chart1.width = 18
-        chart1.height = 13
-        ws.add_chart(chart1, f"B{row}")
-
-    # Chart 2: Enrichment Scores (columns O-P)
     enrich_row_list = [
         (ts["name"], ts["row"])
         for ts in enrich_tier_score_cells.values()
     ]
-    if enrich_row_list:
-        chart_row2 = 2
-        ws.cell(row=chart_row2, column=15, value="Dimension")
-        ws.cell(row=chart_row2, column=16, value="Score")
-        chart_row2 += 1
-        for name, trow in enrich_row_list:
-            ws.cell(row=chart_row2, column=15, value=name)
-            ws.cell(row=chart_row2, column=16, value=f"=D{trow}")
-            ws.cell(row=chart_row2, column=16).number_format = "0.00"
-            chart_row2 += 1
+    return ws, core_tier_row_list, enrich_row_list
 
-        chart2 = BarChart()
-        chart2.type = "col"
-        chart2.style = 10
-        chart2.title = "Organizational Readiness"
-        chart2.y_axis.title = "Score (1\u20145)"
-        chart2.y_axis.scaling.min = 0
-        chart2.y_axis.scaling.max = 5
-        chart2.x_axis.title = None
-        chart2.legend = None
 
-        data2 = Reference(ws, min_col=16, min_row=2, max_row=2 + len(enrich_row_list))
-        cats2 = Reference(ws, min_col=15, min_row=3, max_row=2 + len(enrich_row_list))
-        chart2.add_data(data2, titles_from_data=True)
-        chart2.set_categories(cats2)
+# ── Tab 4: DEBMM Tier Scores Chart ───────────────────────────────────────────
 
-        if chart2.series:
-            for pt_idx in range(len(enrich_row_list)):
-                pt = DataPoint(idx=pt_idx)
-                pt.graphicalProperties.solidFill = TEAL
-                chart2.series[0].data_points.append(pt)
 
-        chart2.width = 12
-        chart2.height = 13
-        ws.add_chart(chart2, f"E{row}")
+def build_core_chart_tab(wb: Workbook, core_tier_row_list: list):
+    """Dedicated sheet for the DEBMM Core Tier Scores bar chart."""
+    if not core_tier_row_list:
+        return None
+    ws = wb.create_sheet("Tier Scores Chart")
+    ws.sheet_properties.tabColor = MED_BLUE
+
+    col_widths = {"A": 3, "B": 22, "C": 12, "D": 3}
+    for col, width in col_widths.items():
+        ws.column_dimensions[col].width = width
+
+    # Title banner
+    ws.merge_cells("A1:D1")
+    ws.row_dimensions[1].height = 48
+    c = ws["A1"]
+    c.value = "  DEBMM Tier Scores"
+    style_cell(c, FONT_TITLE, FILL_DARK_NAVY, Alignment(horizontal="left", vertical="center"))
+    for col in "ABCD":
+        ws[f"{col}1"].fill = FILL_DARK_NAVY
+
+    # Subtitle
+    ws.merge_cells("A2:D2")
+    ws.row_dimensions[2].height = 22
+    c = ws["A2"]
+    c.value = "  Average score per DEBMM core tier (target: 3.0)"
+    style_cell(c, FONT_SUBTITLE, FILL_NAVY, Alignment(horizontal="left", vertical="center"))
+    for col in "ABCD":
+        ws[f"{col}2"].fill = FILL_NAVY
+
+    # Data table header
+    row = 4
+    ws.cell(row=row, column=2, value="Tier")
+    style_cell(ws.cell(row=row, column=2), FONT_COL_HEADER, FILL_STEEL, ALIGN_CENTER, THIN_BORDER)
+    ws.cell(row=row, column=3, value="Score")
+    style_cell(ws.cell(row=row, column=3), FONT_COL_HEADER, FILL_STEEL, ALIGN_CENTER, THIN_BORDER)
+    ws.row_dimensions[row].height = 24
+    row += 1
+
+    data_start = row
+    for name, trow in core_tier_row_list:
+        ws.cell(row=row, column=2, value=name)
+        style_cell(ws.cell(row=row, column=2), FONT_BODY_BOLD, FILL_LIGHT_BLUE, ALIGN_LEFT, THIN_BORDER)
+        ws.cell(row=row, column=3, value=f"='Results Dashboard'!D{trow}")
+        ws.cell(row=row, column=3).number_format = "0.00"
+        style_cell(ws.cell(row=row, column=3), FONT_BODY_BOLD, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
+        apply_conditional_formatting(ws, f"C{row}:C{row}")
+        ws.row_dimensions[row].height = 22
+        row += 1
+    data_end = row - 1
+
+    # Build chart
+    chart = BarChart()
+    chart.type = "col"
+    chart.style = 10
+    chart.title = "DEBMM Tier Scores"
+    chart.y_axis.title = "Score (1\u20145)"
+    chart.y_axis.scaling.min = 0
+    chart.y_axis.scaling.max = 5
+    chart.x_axis.title = None
+    chart.legend = None
+
+    data_ref = Reference(ws, min_col=3, min_row=4, max_row=data_end)
+    cats_ref = Reference(ws, min_col=2, min_row=data_start, max_row=data_end)
+    chart.add_data(data_ref, titles_from_data=True)
+    chart.set_categories(cats_ref)
+
+    if chart.series:
+        for pt_idx in range(len(core_tier_row_list)):
+            pt = DataPoint(idx=pt_idx)
+            pt.graphicalProperties.solidFill = MED_BLUE
+            chart.series[0].data_points.append(pt)
+
+    chart.width = 22
+    chart.height = 14
+    row += 1
+    ws.add_chart(chart, f"B{row}")
 
     ws.freeze_panes = "A3"
     return ws
 
 
-# ── Tab 4: Rubric Reference ──────────────────────────────────────────────────
+# ── Tab 5: Organizational Readiness Chart ────────────────────────────────────
+
+
+def build_enrichment_chart_tab(wb: Workbook, enrich_row_list: list):
+    """Dedicated sheet for the Organizational Readiness bar chart."""
+    if not enrich_row_list:
+        return None
+    ws = wb.create_sheet("Readiness Chart")
+    ws.sheet_properties.tabColor = TEAL
+
+    col_widths = {"A": 3, "B": 30, "C": 12, "D": 3}
+    for col, width in col_widths.items():
+        ws.column_dimensions[col].width = width
+
+    # Title banner
+    ws.merge_cells("A1:D1")
+    ws.row_dimensions[1].height = 48
+    c = ws["A1"]
+    c.value = "  Organizational Readiness"
+    style_cell(c, FONT_TITLE, FILL_DARK_NAVY, Alignment(horizontal="left", vertical="center"))
+    for col in "ABCD":
+        ws[f"{col}1"].fill = FILL_DARK_NAVY
+
+    # Subtitle
+    ws.merge_cells("A2:D2")
+    ws.row_dimensions[2].height = 22
+    c = ws["A2"]
+    c.value = "  Supplementary dimensions \u2014 do not affect DEBMM tier determination"
+    style_cell(c, FONT_SUBTITLE, FILL_TEAL, Alignment(horizontal="left", vertical="center"))
+    for col in "ABCD":
+        ws[f"{col}2"].fill = FILL_TEAL
+
+    # Data table header
+    row = 4
+    ws.cell(row=row, column=2, value="Dimension")
+    style_cell(ws.cell(row=row, column=2), FONT_COL_HEADER, FILL_TEAL, ALIGN_CENTER, THIN_BORDER)
+    ws.cell(row=row, column=3, value="Score")
+    style_cell(ws.cell(row=row, column=3), FONT_COL_HEADER, FILL_TEAL, ALIGN_CENTER, THIN_BORDER)
+    ws.row_dimensions[row].height = 24
+    row += 1
+
+    data_start = row
+    for name, trow in enrich_row_list:
+        ws.cell(row=row, column=2, value=name)
+        style_cell(ws.cell(row=row, column=2), FONT_BODY_BOLD, FILL_LIGHT_TEAL, ALIGN_LEFT, THIN_BORDER)
+        ws.cell(row=row, column=3, value=f"='Results Dashboard'!D{trow}")
+        ws.cell(row=row, column=3).number_format = "0.00"
+        style_cell(ws.cell(row=row, column=3), FONT_BODY_BOLD, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
+        apply_conditional_formatting(ws, f"C{row}:C{row}")
+        ws.row_dimensions[row].height = 22
+        row += 1
+    data_end = row - 1
+
+    # Build chart
+    chart = BarChart()
+    chart.type = "col"
+    chart.style = 10
+    chart.title = "Organizational Readiness"
+    chart.y_axis.title = "Score (1\u20145)"
+    chart.y_axis.scaling.min = 0
+    chart.y_axis.scaling.max = 5
+    chart.x_axis.title = None
+    chart.legend = None
+
+    data_ref = Reference(ws, min_col=3, min_row=4, max_row=data_end)
+    cats_ref = Reference(ws, min_col=2, min_row=data_start, max_row=data_end)
+    chart.add_data(data_ref, titles_from_data=True)
+    chart.set_categories(cats_ref)
+
+    if chart.series:
+        for pt_idx in range(len(enrich_row_list)):
+            pt = DataPoint(idx=pt_idx)
+            pt.graphicalProperties.solidFill = TEAL
+            chart.series[0].data_points.append(pt)
+
+    chart.width = 18
+    chart.height = 14
+    row += 1
+    ws.add_chart(chart, f"B{row}")
+
+    ws.freeze_panes = "A3"
+    return ws
+
+
+# ── Tab 6: Rubric Reference ─────────────────────────────────────────────────
 
 
 def build_rubric_tab(wb: Workbook, rubric: dict):
@@ -1572,7 +1649,10 @@ def generate_spreadsheet(
     wb = Workbook()
     build_instructions_tab(wb, mode)
     _, question_rows, header_row = build_assessment_tab(wb, questionnaire, rubric, mode)
-    build_dashboard_tab(wb, rubric, questionnaire, question_rows, header_row)
+    _, core_tier_row_list, enrich_row_list = build_dashboard_tab(
+        wb, rubric, questionnaire, question_rows, header_row)
+    build_core_chart_tab(wb, core_tier_row_list)
+    build_enrichment_chart_tab(wb, enrich_row_list)
     build_rubric_tab(wb, rubric)
     build_report_data_tab(wb, rubric, question_rows)
 
