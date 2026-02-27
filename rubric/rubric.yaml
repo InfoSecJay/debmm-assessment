@@ -189,17 +189,17 @@ tiers:
             qualitative: >
               Baseline rules cover key threat categories with a mix of signature
               and behavioral detections. Coverage gaps are identified.
-            quantitative: "30-60 baseline rules; 40-60% ATT&CK technique coverage."
+            quantitative: "30-60 baseline rules; 30-50% ATT&CK technique coverage with documented gaps."
           4:
             qualitative: >
               Comprehensive baseline with behavioral and TTP-focused detections.
               Rules are tuned per environment and regularly validated.
-            quantitative: "60-100 baseline rules; 60-80% ATT&CK technique coverage."
+            quantitative: "60-100 baseline rules; 50-70% ATT&CK technique coverage including behavioral detections; gaps tracked against threat model."
           5:
             qualitative: >
               Continuously refined baseline with full environment-specific tuning.
               Automated coverage analysis identifies and fills gaps proactively.
-            quantitative: "100+ baseline rules; >80% ATT&CK technique coverage; continuous refinement."
+            quantitative: "100+ baseline rules; >70% ATT&CK technique coverage; continuous gap analysis and automated coverage tracking."
 
       - id: ruleset_management
         name: Ruleset Management and Maintenance
@@ -437,19 +437,19 @@ tiers:
             quantitative: "<40% emulation coverage; sporadic testing."
           3:
             qualitative: >
-              Regular testing program with attack emulation covering major
-              detection categories. Results are documented and tracked.
-            quantitative: "40-60% emulation coverage; quarterly testing cycles."
+              Regular testing program with attack emulation (e.g., Atomic Red Team,
+              Caldera) covering major detection categories. Results documented and tracked.
+            quantitative: "40-70% emulation coverage; at least quarterly testing cycles."
           4:
             qualitative: >
               Comprehensive internal testing with automated attack emulation,
               purple team exercises, and continuous validation.
-            quantitative: "60-80% automated emulation coverage; regular purple team exercises."
+            quantitative: "70-90% automated emulation coverage; regular purple team exercises."
           5:
             qualitative: >
               Continuous automated testing with real-time validation. Full
-              emulation coverage with automated regression testing.
-            quantitative: ">80% automated coverage; continuous validation; automated regression."
+              emulation coverage with automated regression testing on every rule change.
+            quantitative: ">90% automated coverage; continuous validation; automated regression on every change."
 
   # ============================================================
   # TIER 3: ADVANCED
@@ -478,18 +478,18 @@ tiers:
           3:
             qualitative: >
               Systematic false negative identification through regular testing
-              and validation exercises. Root causes are analyzed.
-            quantitative: "70-90% of tested samples trigger alerts; root cause analysis documented."
+              and validation exercises. Root causes are analyzed and documented.
+            quantitative: "70-90% of tested samples trigger alerts; root cause analysis documented; 30-50% FN reduction from baseline."
           4:
             qualitative: >
               Comprehensive FN management with automated detection validation,
               coverage testing, and rapid remediation processes.
-            quantitative: "90-100% of tested samples trigger alerts; automated validation."
+            quantitative: "90-100% of tested samples trigger alerts; automated validation; >50% FN reduction."
           5:
             qualitative: >
               Continuous, automated false negative detection using advanced
               analytics and real-time validation against live threats.
-            quantitative: "Continuous validation; near-zero FN rate on tested scenarios."
+            quantitative: "Continuous validation; near-zero FN rate on tested scenarios; >75% FN reduction."
 
       - id: external_validation
         name: External Validation
@@ -608,8 +608,9 @@ tiers:
           3:
             qualitative: >
               Significant automation of rule lifecycle tasks including testing,
-              deployment, and basic tuning. Continuous improvement processes defined.
-            quantitative: "40-60% of tasks automated; improvement metrics tracked."
+              deployment, and basic tuning. AI-based quality checks on new rules.
+              Continuous improvement processes defined.
+            quantitative: "40-60% of tasks automated; AI quality checks on new rules; improvement metrics tracked."
           4:
             qualitative: >
               Advanced automation covering most of the detection lifecycle.

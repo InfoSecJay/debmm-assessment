@@ -70,9 +70,9 @@ Establishes baseline detection capabilities with systematic management, version 
 |-------|-------------|--------------|
 | 1 - Initial | Few or no baseline rules; limited to out-of-the-box vendor rules | <10 custom rules; minimal ATT&CK coverage |
 | 2 - Repeatable | Small set covers most critical threats; basic signature/IOC detections | 10-30 rules; <30% ATT&CK coverage for priority areas |
-| 3 - Defined | Key threat categories covered with mix of signature and behavioral | 30-60 rules; 40-60% ATT&CK coverage |
-| 4 - Managed | Comprehensive baseline with behavioral and TTP-focused detections | 60-100 rules; 60-80% ATT&CK coverage |
-| 5 - Optimized | Continuously refined with full environment-specific tuning | 100+ rules; >80% ATT&CK coverage; continuous refinement |
+| 3 - Defined | Key threat categories covered with mix of signature and behavioral | 30-60 rules; 30-50% ATT&CK coverage with documented gaps |
+| 4 - Managed | Comprehensive baseline with behavioral and TTP-focused detections | 60-100 rules; 50-70% ATT&CK coverage including behavioral detections; gaps tracked against threat model |
+| 5 - Optimized | Continuously refined with full environment-specific tuning | 100+ rules; >70% ATT&CK coverage; continuous gap analysis and automated coverage tracking |
 
 ### Ruleset Management and Maintenance
 
@@ -156,9 +156,9 @@ Focuses on improving detection quality through tuning, gap analysis, and systema
 |-------|-------------|--------------|
 | 1 - Initial | No internal testing of detection effectiveness | Zero testing activities |
 | 2 - Repeatable | Occasional manual testing of high-priority rules | <40% emulation coverage; sporadic |
-| 3 - Defined | Regular testing with attack emulation; results documented | 40-60% emulation coverage; quarterly cycles |
-| 4 - Managed | Comprehensive with automated emulation and purple team exercises | 60-80% automated coverage; regular purple team |
-| 5 - Optimized | Continuous automated testing with full emulation and regression | >80% automated; continuous validation; regression testing |
+| 3 - Defined | Regular testing with attack emulation; results documented | 40-70% emulation coverage; quarterly cycles |
+| 4 - Managed | Comprehensive with automated emulation and purple team exercises | 70-90% automated coverage; regular purple team |
+| 5 - Optimized | Continuous automated testing with full emulation and regression | >90% automated; continuous validation; regression testing |
 
 ---
 
@@ -172,9 +172,9 @@ Addresses false negatives, external validation, and advanced threat coverage to 
 |-------|-------------|--------------|
 | 1 - Initial | No process for identifying FNs; missed detections only found during IR | Zero FN reduction activities |
 | 2 - Repeatable | Some FNs identified through post-incident reviews; basic tracking | 50% of tested samples trigger expected alerts |
-| 3 - Defined | Systematic FN identification through regular testing; root causes analyzed | 70-90% trigger rate; root cause analysis documented |
-| 4 - Managed | Comprehensive with automated validation, coverage testing, rapid remediation | 90-100% trigger rate; automated validation |
-| 5 - Optimized | Continuous automated FN detection with real-time validation | Continuous validation; near-zero FN on tested scenarios |
+| 3 - Defined | Systematic FN identification through regular testing; root causes analyzed | 70-90% trigger rate; root cause analysis documented; 30-50% FN reduction from baseline |
+| 4 - Managed | Comprehensive with automated validation, coverage testing, rapid remediation | 90-100% trigger rate; automated validation; >50% FN reduction |
+| 5 - Optimized | Continuous automated FN detection with real-time validation | Continuous validation; near-zero FN on tested scenarios; >75% FN reduction |
 
 ### External Validation
 
@@ -218,7 +218,7 @@ Features proactive threat hunting, advanced automation, AI/LLM integration, and 
 |-------|-------------|--------------|
 | 1 - Initial | No automation; all processes manual | Zero automation |
 | 2 - Repeatable | Basic automation of some repetitive tasks (e.g., deployment scripts) | <30% of routine tasks automated |
-| 3 - Defined | Significant lifecycle automation; continuous improvement processes defined | 40-60% automated; improvement metrics tracked |
+| 3 - Defined | Significant lifecycle automation including AI-based quality checks on new rules; continuous improvement defined | 40-60% automated; AI quality checks on new rules; improvement metrics tracked |
 | 4 - Managed | Advanced automation covering most of lifecycle; AI/LLM tools in use | 70-80% automated; AI/LLM for optimization |
 | 5 - Optimized | Full AI/LLM integration throughout lifecycle | >90% automated; 40%+ FP reduction via AI; full AI lifecycle |
 
