@@ -7,5 +7,15 @@ dist/
 build/
 .venv/
 venv/
+
+# Generated outputs
+*.pptx
+*_data.json
 example-report.md
 example-results.json
+
+# Node
+node_modules/
+
+# IDE / tooling
+.claude/

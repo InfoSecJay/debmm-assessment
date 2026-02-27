@@ -4,7 +4,7 @@ A practical toolkit for SOC managers to assess their detection engineering team'
 
 ## What This Is
 
-A structured assessment covering **21 criteria** across **7 categories** with **41 dropdown questions** (no free-text required):
+A structured assessment covering **24 criteria** across **7 categories** with **41 dropdown questions** (no free-text required):
 
 - **Tier 0 - Foundation**: Rule development, maintenance, roadmaps, threat modeling
 - **Tier 1 - Basic**: Baseline rules, ruleset management, telemetry, testing
@@ -14,42 +14,68 @@ A structured assessment covering **21 criteria** across **7 categories** with **
 - **People & Organization** (enrichment): Team structure, training, leadership
 - **Process & Governance** (enrichment): Lifecycle, metrics, collaboration
 
-Each criterion is scored on a 1-5 maturity scale (Initial → Optimized).
+Each criterion is scored on a 1-5 maturity scale (Initial → Optimized). Your **achieved tier** is the highest tier where all criteria (in that tier and all below) score >= 3.0 — enforcing the progressive nature of the model.
+
+## Prerequisites
+
+- **Python 3.10+** with pip
+- **Node.js 18+** with npm (for PowerPoint report generation)
+- **Microsoft Excel** or compatible spreadsheet app (for filling out assessments)
 
 ## Quick Start
 
-### Option 1: Excel Spreadsheet (Recommended)
-
-The easiest way to use this tool. Fill out a spreadsheet and scores calculate automatically.
+### 1. Install Dependencies
 
 ```bash
-# Install dependencies
 pip install -r scorer/requirements.txt
+npm install
+```
 
-# Generate the spreadsheet
+### 2. Generate the Assessment Spreadsheet
+
+```bash
+# Self-assessment mode (default)
 python scorer/generate_spreadsheet.py
 
-# For audit-style (includes evidence prompts)
-python scorer/generate_spreadsheet.py --mode audit --output debmm-assessment-audit.xlsx
+# Audit mode (includes evidence prompts)
+python scorer/generate_spreadsheet.py --mode audit -o templates/debmm-assessment-audit.xlsx
 ```
 
-Then open `debmm-assessment.xlsx` in Excel / Google Sheets:
+### 3. Fill Out the Assessment
 
-1. **Instructions tab** - Read the overview and maturity level definitions
-2. **Assessment tab** - Fill in your org details and answer all 41 questions using dropdowns
-3. **Results Dashboard tab** - Scores calculate automatically with tier determination, bar chart, and color-coded heatmap
-4. **Rubric Reference tab** - Full rubric for reference while filling it out
+Open the generated spreadsheet in Excel:
 
-No Python needed after generating the spreadsheet - just fill it out and read the dashboard.
+1. **Instructions** — Read the overview and maturity level definitions
+2. **Assessment** — Fill in org details and answer all 41 questions using dropdowns
+3. **Results Dashboard** — Scores calculate automatically with tier determination and color-coded heatmap
+4. **Tier Scores Chart** — DEBMM core tier bar chart
+5. **Readiness Chart** — Organizational readiness bar chart
+6. **Rubric Reference** — Full rubric for reference while answering
+7. **Report Data** — Flat data export for Power BI or report generation
 
-**Want a markdown report or LLM analysis from the spreadsheet?** Feed it back to the scorer:
+**Save the file in Excel** after completing the assessment (this evaluates all formulas).
+
+### 4. Generate a PowerPoint Report
+
+Extract data from the completed spreadsheet, then generate the report:
 
 ```bash
-# Score from a filled-out spreadsheet
-python scorer/score.py --from-xlsx my-filled-assessment.xlsx --report my-report.md
+# Extract assessment data to JSON
+python scorer/extract_data.py my-assessment.xlsx -o data.json
+
+# Generate 4-slide PowerPoint report
+node scorer/generate_report.js data.json my-report.pptx
 ```
 
-### Option 2: YAML + Python CLI
+This produces a dark-themed, exec-ready 4-slide deck:
+- **Slide 1**: Title slide with overall score, achieved tier, completion, pass/fail summary
+- **Slide 2**: Tier progression overview with KPI cards and status indicators
+- **Slide 3**: DEBMM core criteria breakdown with scores, levels, and score bars
+- **Slide 4**: Enrichment criteria cards with category summaries
+
+## Alternative Scoring Methods
+
+### YAML + Python CLI
 
 For technical users or CI/CD integration:
 
@@ -68,86 +94,77 @@ python scorer/score.py my-assessment.yaml --report my-report.md
 python scorer/score.py my-assessment.yaml --json
 ```
 
-### Option 3: LLM-Assisted Scoring
-
-Scores text/written answers automatically, identifies inconsistencies, and generates improvement recommendations. Works with both YAML and Excel inputs.
+### Score from a Filled-Out Spreadsheet
 
 ```bash
-# Install LLM provider
-pip install anthropic  # or: pip install openai
-
-# Set API key
-export ANTHROPIC_API_KEY=your-key-here
-# or: export OPENAI_API_KEY=your-key-here
-
-# Run with LLM analysis (from YAML)
-python scorer/llm_scorer.py my-assessment.yaml --report my-report.md
-
-# Use OpenAI instead
-python scorer/llm_scorer.py my-assessment.yaml --provider openai --report my-report.md
-
-# Preview the prompt without calling the API
-python scorer/llm_scorer.py my-assessment.yaml --dry-run
+python scorer/score.py --from-xlsx my-filled-assessment.xlsx --report my-report.md
 ```
 
-### Option 4: Printable Markdown (No Tooling)
+### LLM-Assisted Scoring
+
+Scores text answers automatically, identifies inconsistencies, and generates improvement recommendations:
+
+```bash
+pip install anthropic  # or: pip install openai
+export ANTHROPIC_API_KEY=your-key-here
+
+python scorer/llm_scorer.py my-assessment.yaml --report my-report.md
+```
+
+### Printable Markdown (No Tooling)
 
 For pen-and-paper or workshop-style assessments:
 
-1. Open the questionnaire:
-   - Self-assessment: [`questionnaire/questionnaire-self.md`](questionnaire/questionnaire-self.md)
-   - Audit-style: [`questionnaire/questionnaire-audit.md`](questionnaire/questionnaire-audit.md)
-2. Fill it out using the [`rubric/rubric.md`](rubric/rubric.md) as your scoring guide
+1. Open [`questionnaire/questionnaire-self.md`](questionnaire/questionnaire-self.md) or [`questionnaire/questionnaire-audit.md`](questionnaire/questionnaire-audit.md)
+2. Score using [`rubric/rubric.md`](rubric/rubric.md)
 3. Tally scores using the [methodology](docs/methodology.md)
-
-## Try the Example
-
-```bash
-# Score the included example (a realistic mid-maturity org)
-python scorer/score.py templates/example-response.yaml --report example-report.md
-```
 
 ## Project Structure
 
 ```
 debmm-assessment/
-├── README.md                              # This file
-├── LICENSE                                # MIT License
+├── README.md
+├── LICENSE
+├── package.json                          # Node.js dependencies (pptxgenjs)
 ├── rubric/
-│   ├── rubric.yaml                        # Machine-readable rubric (21 criteria, 5 levels each)
-│   └── rubric.md                          # Human-readable rubric with scoring tables
+│   ├── rubric.yaml                       # Machine-readable rubric (24 criteria, 5 levels each)
+│   └── rubric.md                         # Human-readable rubric with scoring tables
 ├── questionnaire/
-│   ├── questionnaire.yaml                 # Master questionnaire (56 questions, structured)
-│   ├── questionnaire-self.md              # Printable self-assessment version
-│   └── questionnaire-audit.md             # Printable audit version (with evidence prompts)
+│   ├── questionnaire.yaml                # Master questionnaire (41 questions, structured)
+│   ├── questionnaire-self.md             # Printable self-assessment version
+│   └── questionnaire-audit.md            # Printable audit version (with evidence prompts)
 ├── scorer/
-│   ├── requirements.txt                   # Python dependencies
-│   ├── generate_spreadsheet.py            # Generates the all-in-one Excel assessment
-│   ├── score.py                           # Automated CLI scorer (YAML or Excel input)
-│   ├── report.py                          # Markdown report generator
-│   └── llm_scorer.py                      # LLM-assisted scorer (Anthropic/OpenAI)
+│   ├── requirements.txt                  # Python dependencies
+│   ├── generate_spreadsheet.py           # Generates the all-in-one Excel assessment
+│   ├── extract_data.py                   # Extracts assessment data from xlsx to JSON
+│   ├── generate_report.js                # Generates PowerPoint report from JSON
+│   ├── score.py                          # Automated CLI scorer (YAML or Excel input)
+│   ├── report.py                         # Markdown report generator
+│   └── llm_scorer.py                     # LLM-assisted scorer (Anthropic/OpenAI)
 ├── templates/
-│   ├── response-template.yaml             # Blank YAML response template
-│   └── example-response.yaml              # Example: mid-maturity organization
+│   ├── debmm-assessment.xlsx             # Generated self-assessment spreadsheet
+│   ├── debmm-assessment-audit.xlsx       # Generated audit spreadsheet
+│   ├── response-template.yaml            # Blank YAML response template
+│   └── example-response.yaml             # Example: mid-maturity organization
 └── docs/
-    └── methodology.md                     # Scoring methodology and interpretation guide
+    └── methodology.md                    # Scoring methodology and interpretation guide
 ```
 
 ## How Scoring Works
 
+- **Scale questions** (1-5): Each dropdown option maps directly to a maturity score with quantitative thresholds from the rubric
 - **Checklist questions** (yes/no): Yes maps to a maturity level (typically 3-4), No maps to 1
-- **Scale questions** (1-5): Used directly as the maturity score; each option includes quantitative thresholds from the rubric
 
-**Tier determination**: Your achieved tier is the highest tier where all criteria (in that tier and below) score >= 3.0 (Defined level). This enforces the progressive nature of the model - you need solid foundations before claiming advanced maturity.
+**Tier determination**: Your achieved tier is the highest tier where **all** criteria (in that tier and all below) score >= 3.0 (Defined level). A single criterion below 3.0 anywhere in the chain caps your tier — this enforces the progressive nature of the model.
 
 See [docs/methodology.md](docs/methodology.md) for the full scoring methodology.
 
 ## Self-Assessment vs. Audit
 
-| Mode | Use When | How |
-|------|----------|-----|
+| Mode | Use When | Command |
+|------|----------|---------|
 | **Self-Assessment** | Manager evaluating their own team | `python scorer/generate_spreadsheet.py` |
-| **Audit** | Evaluating another team with evidence collection | `python scorer/generate_spreadsheet.py --mode audit` |
+| **Audit** | Evaluating another team with evidence collection | `python scorer/generate_spreadsheet.py --mode audit -o templates/debmm-assessment-audit.xlsx` |
 
 The audit version includes evidence-request prompts for each question to support objective evaluation.
 
