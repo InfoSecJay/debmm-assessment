@@ -152,16 +152,15 @@ def build_instructions_tab(wb: Workbook):
             "Detection Engineering Behavior Maturity Model (DEBMM), enriched with organizational "
             "dimensions from detectionengineering.io.",
             "",
-            "It covers 21 criteria across 7 categories, with 56 questions total.",
+            "It covers 21 criteria across 7 categories, with 41 dropdown questions total.",
+            "All questions are answered via dropdowns (Yes/No or Scale 1-5). No free-text required.",
         ]),
         ("How to Use", [
             "1. Fill in your organization details at the top of the Assessment tab",
-            "2. Answer each question using the dropdown menus or text fields",
+            "2. Answer each question using the dropdown menus",
             "3. For Yes/No questions: select from the dropdown",
             "4. For Scale questions (1-5): select from the dropdown",
-            "5. For Text questions: type your response in the 'Your Answer' column",
-            "6. Use the 'Evidence / Notes' column for supporting details (optional but recommended)",
-            "7. Switch to the Results Dashboard tab to see your scores automatically calculated",
+            "5. Switch to the Results Dashboard tab to see your scores automatically calculated",
         ]),
         ("Maturity Levels", [
             "Each criterion is scored on a 1-5 scale:",
@@ -222,28 +221,41 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
     ws = wb.create_sheet("Assessment")
     ws.sheet_properties.tabColor = MED_BLUE
 
-    # Column widths
-    col_widths = {
-        "A": 10,   # ID
-        "B": 12,   # Tier
-        "C": 30,   # Criterion
-        "D": 10,   # Type
-        "E": 65,   # Question
-        "F": 18,   # Your Answer
-        "G": 12,   # Auto Score
-        "H": 50,   # Evidence / Notes
-    }
+    # Column widths - audit mode includes evidence column, self mode does not
+    if mode == "audit":
+        col_widths = {
+            "A": 10,   # ID
+            "B": 12,   # Tier
+            "C": 30,   # Criterion
+            "D": 10,   # Type
+            "E": 65,   # Question
+            "F": 18,   # Your Answer
+            "G": 12,   # Auto Score
+            "H": 50,   # Evidence / Notes
+        }
+    else:
+        col_widths = {
+            "A": 10,   # ID
+            "B": 12,   # Tier
+            "C": 30,   # Criterion
+            "D": 10,   # Type
+            "E": 65,   # Question
+            "F": 18,   # Your Answer
+            "G": 12,   # Auto Score
+        }
     for col, width in col_widths.items():
         ws.column_dimensions[col].width = width
 
     # ── Metadata section ─────────────────────────────────────────────────
-    ws.merge_cells("A1:H1")
+    last_col = "H" if mode == "audit" else "G"
+    last_col_num = 8 if mode == "audit" else 7
+    ws.merge_cells(f"A1:{last_col}1")
     ws.row_dimensions[1].height = 40
     c = ws["A1"]
     c.value = "  DEBMM Assessment"
     style_cell(c, FONT_TITLE, FILL_NAVY, Alignment(horizontal="left", vertical="center"))
-    for col in "ABCDEFGH":
-        ws[f"{col}1"].fill = FILL_NAVY
+    for col_letter in [get_column_letter(i) for i in range(1, last_col_num + 1)]:
+        ws[f"{col_letter}1"].fill = FILL_NAVY
 
     labels = ["Organization:", "Assessor Name:", "Assessor Role:", "Date:", "Assessment Type:"]
     for i, label in enumerate(labels):
@@ -280,7 +292,10 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
 
     # ── Column headers ───────────────────────────────────────────────────
     header_row = 9
-    headers = ["ID", "Tier", "Criterion", "Type", "Question", "Your Answer", "Score", "Evidence / Notes"]
+    if mode == "audit":
+        headers = ["ID", "Tier", "Criterion", "Type", "Question", "Your Answer", "Score", "Evidence / Notes"]
+    else:
+        headers = ["ID", "Tier", "Criterion", "Type", "Question", "Your Answer", "Score"]
     for col_idx, header in enumerate(headers, 1):
         c = ws.cell(row=header_row, column=col_idx, value=header)
         style_cell(c, FONT_HEADER, FILL_DARK_BLUE, ALIGN_CENTER, THIN_BORDER)
@@ -317,10 +332,10 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
         tier_display = tier_names.get(q_tier, str(q_tier))
         if q_tier != current_tier:
             current_tier = q_tier
-            ws.merge_cells(f"A{row}:H{row}")
+            ws.merge_cells(f"A{row}:{last_col}{row}")
             c = ws.cell(row=row, column=1, value=f"  {tier_display}")
             style_cell(c, FONT_TIER, FILL_LIGHT_BLUE, Alignment(horizontal="left", vertical="center"))
-            for col in range(1, 9):
+            for col in range(1, last_col_num + 1):
                 ws.cell(row=row, column=col).fill = FILL_LIGHT_BLUE
             ws.row_dimensions[row].height = 30
             row += 1
@@ -344,7 +359,7 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
         ws.cell(row=row, column=3, value=criterion)
         style_cell(ws.cell(row=row, column=3), FONT_SMALL, row_fill, ALIGN_WRAP, THIN_BORDER)
 
-        type_display = {"checklist": "Yes/No", "scale": "Scale 1-5", "text": "Text"}.get(qtype, qtype)
+        type_display = {"checklist": "Yes/No", "scale": "Scale 1-5"}.get(qtype, qtype)
         ws.cell(row=row, column=4, value=type_display)
         style_cell(ws.cell(row=row, column=4), FONT_SMALL, row_fill, ALIGN_CENTER, THIN_BORDER)
 
@@ -364,9 +379,6 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
             dv_yesno.add(answer_cell)
         elif qtype == "scale":
             dv_scale.add(answer_cell)
-        else:
-            # Text - make answer column wider for this row
-            style_cell(answer_cell, FONT_BODY, FILL_LIGHTER_BLUE, ALIGN_WRAP, THIN_BORDER)
 
         # Score column - auto-calculated formula
         score_cell = ws.cell(row=row, column=7)
@@ -377,20 +389,17 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
         elif qtype == "scale":
             formula = f'=IF({answer_ref}="","",{answer_ref})'
             score_cell.value = formula
-        else:
-            score_cell.value = ""
         style_cell(score_cell, FONT_BODY_BOLD, row_fill, ALIGN_CENTER, THIN_BORDER)
         score_cell.number_format = "0.0"
 
-        # Evidence column
-        evidence_cell = ws.cell(row=row, column=8)
-        style_cell(evidence_cell, FONT_BODY, FILL_LIGHTER_BLUE, ALIGN_WRAP, THIN_BORDER)
+        # Evidence column (audit mode only)
+        if mode == "audit":
+            evidence_cell = ws.cell(row=row, column=8)
+            style_cell(evidence_cell, FONT_BODY, FILL_LIGHTER_BLUE, ALIGN_WRAP, THIN_BORDER)
 
         # Set row height for readability
         if qtype == "scale":
             ws.row_dimensions[row].height = 100
-        elif qtype == "text":
-            ws.row_dimensions[row].height = 60
         else:
             ws.row_dimensions[row].height = 30
 

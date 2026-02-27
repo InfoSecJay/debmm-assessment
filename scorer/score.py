@@ -4,7 +4,6 @@ DEBMM Assessment Scorer
 
 Scores a completed DEBMM assessment response against the rubric.
 Handles checklist (yes/no) and scale (1-5) questions automatically.
-Flags text questions for manual or LLM review.
 
 Usage:
     python score.py <response.yaml> [--rubric <rubric.yaml>] [--questionnaire <questionnaire.yaml>]
@@ -85,9 +84,6 @@ def load_xlsx_responses(xlsx_path: Path, questionnaire_path: Path) -> dict:
                 answer = int(answer.strip())
             else:
                 answer = None
-        elif q_def["type"] == "text":
-            answer = str(answer).strip() if answer else ""
-
         responses[qid] = {
             "answer": answer,
             "evidence": evidence,
@@ -166,16 +162,6 @@ def score_question(question: dict, answer) -> dict:
             "status": "invalid",
             "raw_answer": answer,
             "error": f"Expected integer 1-5, got {answer}",
-        }
-
-    if qtype == "text":
-        has_content = isinstance(answer, str) and answer.strip()
-        return {
-            "id": qid,
-            "type": qtype,
-            "score": None,
-            "status": "needs_review" if has_content else "unanswered",
-            "raw_answer": answer if has_content else None,
         }
 
     return {

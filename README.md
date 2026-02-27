@@ -4,7 +4,7 @@ A practical toolkit for SOC managers to assess their detection engineering team'
 
 ## What This Is
 
-A structured assessment covering **21 criteria** across **7 categories**:
+A structured assessment covering **21 criteria** across **7 categories** with **41 dropdown questions** (no free-text required):
 
 - **Tier 0 - Foundation**: Rule development, maintenance, roadmaps, threat modeling
 - **Tier 1 - Basic**: Baseline rules, ruleset management, telemetry, testing
@@ -36,7 +36,7 @@ python scorer/generate_spreadsheet.py --mode audit --output debmm-assessment-aud
 Then open `debmm-assessment.xlsx` in Excel / Google Sheets:
 
 1. **Instructions tab** - Read the overview and maturity level definitions
-2. **Assessment tab** - Fill in your org details and answer all 56 questions using dropdowns
+2. **Assessment tab** - Fill in your org details and answer all 41 questions using dropdowns
 3. **Results Dashboard tab** - Scores calculate automatically with tier determination, bar chart, and color-coded heatmap
 4. **Rubric Reference tab** - Full rubric for reference while filling it out
 
@@ -136,8 +136,7 @@ debmm-assessment/
 ## How Scoring Works
 
 - **Checklist questions** (yes/no): Yes maps to a maturity level (typically 3-4), No maps to 1
-- **Scale questions** (1-5): Used directly as the maturity score
-- **Text questions**: Flagged for manual review or scored by LLM
+- **Scale questions** (1-5): Used directly as the maturity score; each option includes quantitative thresholds from the rubric
 
 **Tier determination**: Your achieved tier is the highest tier where all criteria (in that tier and below) score >= 3.0 (Defined level). This enforces the progressive nature of the model - you need solid foundations before claiming advanced maturity.
 
