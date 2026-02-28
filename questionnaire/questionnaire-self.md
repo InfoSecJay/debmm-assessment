@@ -1,6 +1,6 @@
 # DEBMM Self-Assessment Questionnaire
 
-> 41 questions across 7 categories. All answers are dropdown selections.
+> 46 questions across 7 categories. All answers are dropdown selections.
 
 **Organization**: ___________________________
 **Assessor**: ___________________________
@@ -74,6 +74,11 @@ Does your threat modeling use a recognized framework (e.g., STRIDE, MITRE ATT&CK
 
 **T0-Q7** *(Threat Modeling)* *(Yes/No)*
 Do threat modeling outputs directly generate items on your detection engineering backlog or roadmap?
+
+[ ] Yes  [ ] No
+
+**T0-Q8** *(Threat Modeling)* *(Yes/No)*
+Does your team maintain a documented inventory of critical assets (endpoints, servers, cloud workloads, identities) mapped to detection coverage?
 
 [ ] Yes  [ ] No
 
@@ -231,6 +236,11 @@ Are detection coverage gaps formally communicated to stakeholders (leadership, I
 
 [ ] Yes  [ ] No
 
+**T2-Q7** *(Gap Analysis)* *(Yes/No)*
+Does your team maintain a formal detection coverage map that links critical assets and priority threat actors to specific detection rules?
+
+[ ] Yes  [ ] No
+
 ### Internal Testing
 
 **T2-Q6** *(Internal Testing)* *(Scale 1-5)*
@@ -360,6 +370,11 @@ How many detection lifecycle stages have AI/LLM or automation integration? Stage
 | 4 | 4-5 stages automated or AI-assisted |
 | 5 | All 6 stages with AI/LLM integration throughout |
 
+**T4-Q6** *(Automation and Continuous Improvement)* *(Yes/No)*
+Does your team conduct regular retrospectives on detection failures (missed detections, late detections, false negatives) to improve the detection process?
+
+[ ] Yes  [ ] No
+
 ---
 
 ## Enrichment: People & Organization
@@ -410,6 +425,11 @@ Does your detection engineering team present metrics or results to executive lea
 
 **EP-Q5** *(Leadership Commitment)* *(Yes/No)*
 Has executive leadership made investment or staffing decisions based on detection engineering metrics or recommendations in the past year?
+
+[ ] Yes  [ ] No
+
+**EP-Q6** *(Team Structure)* *(Yes/No)*
+Are designated owners assigned for key detection engineering activities (e.g., threat landscape monitoring, rule testing and release, detection lifecycle management)?
 
 [ ] Yes  [ ] No
 
@@ -466,6 +486,11 @@ Rate the maturity of collaboration between detection engineering and other secur
 | 3 | Regular collaboration through defined channels; scheduled touchpoints at least monthly with IR and threat intel teams |
 | 4 | Deep integration with joint planning sessions at least quarterly, shared OKRs/objectives, and integrated workflows (e.g., threat intel feeds directly inform detection priorities) |
 | 5 | Seamless cross-functional collaboration with automated information sharing, shared metrics dashboards, and embedded team members |
+
+**EG-Q5** *(Detection Lifecycle)* *(Yes/No)*
+Is there a defined process to incorporate lessons learned from security incidents into detection rule updates?
+
+[ ] Yes  [ ] No
 
 ---
 

@@ -4,7 +4,7 @@ A practical toolkit for SOC managers to assess their detection engineering team'
 
 ## What This Is
 
-A structured assessment covering **24 criteria** across **7 categories** with **41 dropdown questions** (no free-text required):
+A structured assessment covering **24 criteria** across **7 categories** with **46 dropdown questions** (no free-text required):
 
 - **Tier 0 - Foundation**: Rule development, maintenance, roadmaps, threat modeling
 - **Tier 1 - Basic**: Baseline rules, ruleset management, telemetry, testing
@@ -61,7 +61,7 @@ This creates the spreadsheet in `templates/`. You only need to regenerate it if 
 Open `templates/debmm-assessment.xlsx` in Excel. The spreadsheet has 7 tabs:
 
 1. **Instructions** — Overview and maturity level definitions
-2. **Assessment** — Fill in org details and answer all 41 questions using dropdowns
+2. **Assessment** — Fill in org details and answer all 46 questions using dropdowns
 3. **Results Dashboard** — Scores calculate automatically with tier determination and color-coded heatmap
 4. **Tier Scores Chart** — DEBMM core tier bar chart
 5. **Readiness Chart** — Organizational readiness bar chart
@@ -70,63 +70,127 @@ Open `templates/debmm-assessment.xlsx` in Excel. The spreadsheet has 7 tabs:
 
 **Save the file in Excel** after completing the assessment (this evaluates all formulas).
 
-#### 2. Extract Data and Build History
+#### 2. Extract Data
+
+After saving the completed spreadsheet in Excel, extract the data:
 
 ```bash
 python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
 ```
 
-This does two things:
-- Writes `data.json` — the current assessment snapshot (for the point-in-time report)
-- Creates/updates `history.json` — appends this assessment to the history file (for trend reporting)
+This single command does two things:
+- Writes **`data.json`** — a snapshot of this assessment (used by the point-in-time report)
+- Creates/updates **`history.json`** — appends this month's results to the history file (used by the trend report)
 
-The date period is automatically derived from the spreadsheet's Date field. To override:
+The date period is automatically derived from the spreadsheet's Date field. To override (e.g. for retroactive entries):
 
 ```bash
 python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json --date 2026-01
 ```
 
+> **Note:** You can also extract without `--history` if you only want the point-in-time report:
+> ```bash
+> python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json
+> ```
+
 #### 3. Generate Reports
 
-**Point-in-time report** (4-slide exec deck):
+You now have the data files needed for both report types. Run either or both:
 
-```bash
-node scorer/generate_report.js data.json reports/2026-01-report.pptx
-```
-
-Produces a dark-themed, exec-ready 4-slide deck:
-- **Slide 1**: Title slide with overall score, achieved tier, completion, pass/fail summary
-- **Slide 2**: Tier progression overview with KPI cards and status indicators
-- **Slide 3**: DEBMM core criteria breakdown with scores, levels, and score bars
-- **Slide 4**: Enrichment criteria cards with category summaries
-
-**Trend report** (3-slide trend deck — available with 1+ assessments):
-
-```bash
-node scorer/generate_trend.js history.json reports/2026-01-trend.pptx
-```
-
-With a single assessment, this shows a "Baseline Established" card with current state. After 2+ assessments, it generates full trend analysis:
-- **Slide 1**: Score trajectory line chart with 3.0 threshold and tier achievement badges
-- **Slide 2**: Per-tier score trends with delta indicators and sparkline history
-- **Slide 3**: Biggest improvements and areas needing attention
+---
 
 ### Recurring Monthly Updates
 
-Each month, repeat the process:
+Each month, repeat steps 1-3: update answers in the spreadsheet, save in Excel, re-extract, and generate reports. The `--history` flag upserts by date — if the same month already exists, it replaces the entry.
 
+---
+
+## Generating Reports
+
+Two independent PowerPoint reports are available. You can run either or both after extracting data.
+
+### Point-in-Time Report
+
+A 4-slide exec-ready snapshot of a single assessment. Requires `data.json` from the extract step.
+
+**Step 1:** Extract data (if not already done):
 ```bash
-# 1. Open the spreadsheet, update answers, save in Excel
+python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json
+```
 
-# 2. Extract and append to history
+**Step 2:** Generate the report:
+```bash
+node scorer/generate_report.js data.json my-report.pptx
+```
+
+**What you get** — a dark-themed 4-slide PowerPoint deck:
+
+| Slide | Content |
+|-------|---------|
+| **1 - Title** | Overall score, achieved tier, completion count, pass/fail summary |
+| **2 - Tier Overview** | 5 tier KPI cards with scores, levels, status indicators, and progression bar |
+| **3 - Core Breakdown** | All 18 DEBMM core criteria with scores, maturity levels, score bars, and pass/fail status |
+| **4 - Enrichment** | 6 enrichment criteria cards grouped by category (People & Org, Process & Governance) with averages |
+
+**Full example:**
+```bash
+# Extract from a completed assessment
+python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json
+
+# Generate the report
+node scorer/generate_report.js data.json reports/2026-02-snapshot.pptx
+```
+
+### Trend Report
+
+A 3-slide report showing progress over time. Requires `history.json` with 1+ assessment entries.
+
+**Step 1:** Make sure you've been extracting with `--history` each month:
+```bash
+# Each month when you extract, include --history to build up the trend data
+python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
+```
+
+**Step 2:** Generate the trend report:
+```bash
+node scorer/generate_trend.js history.json my-trend.pptx
+```
+
+**What you get** — a dark-themed 3-slide PowerPoint deck:
+
+| Slide | Content |
+|-------|---------|
+| **1 - Score Trajectory** | Line chart of overall score over time with 3.0 threshold line, tier achievement badges, and date labels. (With only 1 entry, shows a "Baseline Established" card instead.) |
+| **2 - Per-Tier Trends** | 5 tier cards showing current score, delta from previous month, pass/fail status, and sparkline bar chart history. Flags assessor changes automatically. |
+| **3 - Criteria Delta** | Two tables: "Biggest Improvements" (top 5 by score increase) and "Needs Attention" (regressions + criteria closest to the 3.0 threshold). Summary stats at bottom. |
+
+**Full example — first month (baseline):**
+```bash
+# First assessment — creates history.json with 1 entry
 python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
 
-# 3. Generate both reports
-node scorer/generate_report.js data.json reports/2026-02-report.pptx
+# Trend report shows "Baseline Established" with current scores
+node scorer/generate_trend.js history.json reports/2026-01-trend.pptx
+```
+
+**Full example — subsequent months (with trends):**
+```bash
+# Month 2 — update spreadsheet, save in Excel, then extract
+python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
+
+# Now history.json has 2+ entries, trend report shows full analysis
 node scorer/generate_trend.js history.json reports/2026-02-trend.pptx
 ```
 
-The extract step automatically detects the date from the spreadsheet and upserts the entry in `history.json` — if the same month already exists, it replaces it.
+**Full example — generate both reports at once:**
+```bash
+# Extract data and update history
+python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
+
+# Generate both reports
+node scorer/generate_report.js data.json reports/2026-02-snapshot.pptx
+node scorer/generate_trend.js history.json reports/2026-02-trend.pptx
+```
 
 ## Handling Common Scenarios
 

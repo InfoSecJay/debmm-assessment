@@ -1,5 +1,5 @@
 # DEBMM Assessment Questionnaire v2
-# 41 questions mapped to 21 rubric criteria across 7 categories
+# 46 questions mapped to 21 rubric criteria across 7 categories
 #
 # All questions are dropdowns (scale 1-5 or checklist yes/no).
 # No text/free-form questions. Quantitative thresholds from the rubric
@@ -101,6 +101,15 @@ questions:
     question_audit: "Do threat modeling outputs directly generate items on the assessed team's backlog?"
     scoring:
       yes_value: 4
+
+  - id: T0-Q8
+    tier: 0
+    criterion: threat_modeling
+    type: checklist
+    question: "Does your team maintain a documented inventory of critical assets (endpoints, servers, cloud workloads, identities) mapped to detection coverage?"
+    question_audit: "Does the assessed team maintain a documented inventory of critical assets mapped to detection coverage?"
+    scoring:
+      yes_value: 3
 
   # ============================================================
   # TIER 1: BASIC
@@ -284,6 +293,15 @@ questions:
     scoring:
       yes_value: 4
 
+  - id: T2-Q7
+    tier: 2
+    criterion: gap_analysis
+    type: checklist
+    question: "Does your team maintain a formal detection coverage map that links critical assets and priority threat actors to specific detection rules?"
+    question_audit: "Does the assessed team maintain a formal detection coverage map linking assets and threat actors to detection rules?"
+    scoring:
+      yes_value: 4
+
   # --- Internal Testing ---
   - id: T2-Q6
     tier: 2
@@ -433,6 +451,15 @@ questions:
       4: "4-5 stages automated or AI-assisted"
       5: "All 6 stages with AI/LLM integration throughout"
 
+  - id: T4-Q6
+    tier: 4
+    criterion: automation_continuous_improvement
+    type: checklist
+    question: "Does your team conduct regular retrospectives on detection failures (missed detections, late detections, false negatives) to improve the detection process?"
+    question_audit: "Does the assessed team conduct regular retrospectives on detection failures to improve the process?"
+    scoring:
+      yes_value: 3
+
   # ============================================================
   # ENRICHMENT: PEOPLE & ORGANIZATION
   # ============================================================
@@ -497,6 +524,15 @@ questions:
     scoring:
       yes_value: 4
 
+  - id: EP-Q6
+    tier: enrichment_people
+    criterion: team_structure
+    type: checklist
+    question: "Are designated owners assigned for key detection engineering activities (e.g., threat landscape monitoring, rule testing and release, detection lifecycle management)?"
+    question_audit: "Are designated owners assigned for key detection engineering activities in the assessed team?"
+    scoring:
+      yes_value: 3
+
   # ============================================================
   # ENRICHMENT: PROCESS & GOVERNANCE
   # ============================================================
@@ -555,3 +591,12 @@ questions:
       3: "Regular collaboration through defined channels; scheduled touchpoints at least monthly with IR and threat intel teams"
       4: "Deep integration with joint planning sessions at least quarterly, shared OKRs/objectives, and integrated workflows (e.g., threat intel feeds directly inform detection priorities)"
       5: "Seamless cross-functional collaboration with automated information sharing, shared metrics dashboards, and embedded team members"
+
+  - id: EG-Q5
+    tier: enrichment_process
+    criterion: detection_lifecycle
+    type: checklist
+    question: "Is there a defined process to incorporate lessons learned from security incidents into detection rule updates?"
+    question_audit: "Is there a defined process to incorporate incident lessons learned into the assessed team's detection rule updates?"
+    scoring:
+      yes_value: 4
