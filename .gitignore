@@ -11,6 +11,9 @@ venv/
 # Generated outputs
 *.pptx
 *_data.json
+data.json
+history.json
+baseline.json
 example-report.md
 example-results.json
 

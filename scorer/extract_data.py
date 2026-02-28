@@ -1,7 +1,7 @@
 """Extract DEBMM assessment data from a completed .xlsx into JSON for report generation.
 
 Usage:
-    python scorer/extract_data.py <assessment.xlsx> [-o output.json]
+    python scorer/extract_data.py <assessment.xlsx> [-o output.json] [--history history.json] [--date YYYY-MM]
 
 The spreadsheet MUST be opened and saved in Excel first so that formulas are evaluated.
 Reads the Report Data tab (designed for machine consumption).
@@ -10,6 +10,7 @@ Reads the Report Data tab (designed for machine consumption).
 import argparse
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import openpyxl
@@ -33,7 +34,7 @@ def _to_str(value, default=""):
 
 
 def extract_report_data(xlsx_path: Path) -> dict:
-    """Read the Report Data tab and return structured dict matching generate_debmm.js schema."""
+    """Read the Report Data tab and return structured dict matching generate_report.js schema."""
     wb = openpyxl.load_workbook(xlsx_path, data_only=True)
 
     if "Report Data" not in wb.sheetnames:
@@ -62,7 +63,6 @@ def extract_report_data(xlsx_path: Path) -> dict:
     overall_raw = summary.get("Overall Score")
     overall_score = _to_float(overall_raw)
     if overall_score is None and isinstance(overall_raw, str):
-        # Handle "3.04 / 5.0" format from Dashboard
         try:
             overall_score = float(overall_raw.split("/")[0].strip())
         except (ValueError, IndexError):
@@ -128,6 +128,62 @@ def extract_report_data(xlsx_path: Path) -> dict:
     }
 
 
+def _derive_period(data: dict, date_override: str | None) -> str:
+    """Derive the YYYY-MM period key from --date override, spreadsheet date, or current month."""
+    if date_override:
+        return date_override
+
+    date_str = data.get("date", "")
+    if date_str and date_str != "N/A" and date_str != "0":
+        try:
+            # Handle YYYY-MM-DD
+            dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+            return dt.strftime("%Y-%m")
+        except ValueError:
+            pass
+        try:
+            # Handle YYYY-MM directly
+            datetime.strptime(date_str[:7], "%Y-%m")
+            return date_str[:7]
+        except ValueError:
+            pass
+
+    return datetime.now().strftime("%Y-%m")
+
+
+def upsert_history(history_path: Path, data: dict, period: str):
+    """Append or replace an entry in the history file, keyed by period (YYYY-MM)."""
+    if history_path.exists():
+        history = json.loads(history_path.read_text(encoding="utf-8"))
+    else:
+        history = []
+
+    snapshot = {
+        "date": period,
+        "extractedAt": datetime.now(timezone.utc).isoformat(),
+        **data,
+    }
+
+    # Upsert: replace existing entry for this period, or append
+    replaced = False
+    for i, entry in enumerate(history):
+        if entry.get("date") == period:
+            history[i] = snapshot
+            replaced = True
+            break
+    if not replaced:
+        history.append(snapshot)
+
+    # Sort chronologically
+    history.sort(key=lambda e: e.get("date", ""))
+
+    history_path.write_text(
+        json.dumps(history, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    action = "Updated" if replaced else "Added"
+    print(f"  History: {action} period {period} in {history_path} ({len(history)} total entries)")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Extract DEBMM assessment data from xlsx to JSON."
@@ -137,14 +193,31 @@ def main():
         "-o", "--output", type=Path, default=None,
         help="Output JSON path (default: <input>_data.json)",
     )
+    parser.add_argument(
+        "--history", type=Path, default=None,
+        help="Path to history.json — appends/upserts this assessment for trend reporting",
+    )
+    parser.add_argument(
+        "--date", type=str, default=None,
+        help="Override assessment period (YYYY-MM format, e.g. 2026-03). "
+             "Default: derived from spreadsheet date field or current month.",
+    )
     args = parser.parse_args()
 
     if not args.xlsx.exists():
         print(f"Error: File not found: {args.xlsx}", file=sys.stderr)
         sys.exit(1)
 
+    if args.date:
+        try:
+            datetime.strptime(args.date, "%Y-%m")
+        except ValueError:
+            print(f"Error: --date must be YYYY-MM format (got: {args.date})", file=sys.stderr)
+            sys.exit(1)
+
     data = extract_report_data(args.xlsx)
 
+    # Write single-extract JSON
     output = args.output or args.xlsx.with_suffix("").with_name(
         args.xlsx.stem + "_data.json"
     )
@@ -154,6 +227,11 @@ def main():
     print(f"  Overall Score: {data['overallScore']}")
     print(f"  Achieved Tier: {data['achievedTier']}")
     print(f"  Tiers: {len(data['tiers'])}, Criteria: {len(data['criteria'])}")
+
+    # Append to history if requested
+    if args.history:
+        period = _derive_period(data, args.date)
+        upsert_history(args.history, data, period)
 
 
 if __name__ == "__main__":
