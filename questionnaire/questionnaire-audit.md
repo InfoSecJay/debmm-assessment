@@ -93,6 +93,13 @@ Do threat modeling outputs directly generate items on the assessed team's backlo
 
 Evidence: ___________________________
 
+**T0-Q8** *(Threat Modeling)* *(Yes/No)*
+Does the assessed team maintain a documented inventory of critical assets mapped to detection coverage?
+
+[ ] Yes  [ ] No
+
+Evidence: ___________________________
+
 ---
 
 ## Tier 1: Basic
@@ -275,6 +282,13 @@ Are the assessed team's gaps communicated to stakeholders at least quarterly?
 
 Evidence: ___________________________
 
+**T2-Q7** *(Gap Analysis)* *(Yes/No)*
+Does the assessed team maintain a formal detection coverage map linking assets and threat actors to detection rules?
+
+[ ] Yes  [ ] No
+
+Evidence: ___________________________
+
 ### Internal Testing
 
 **T2-Q6** *(Internal Testing)* *(Scale 1-5)*
@@ -426,6 +440,13 @@ How many detection lifecycle stages have automation or AI integration?
 
 Evidence: ___________________________
 
+**T4-Q6** *(Automation and Continuous Improvement)* *(Yes/No)*
+Does the assessed team conduct regular retrospectives on detection failures to improve the process?
+
+[ ] Yes  [ ] No
+
+Evidence: ___________________________
+
 ---
 
 ## Enrichment: People & Organization
@@ -484,6 +505,13 @@ Evidence: ___________________________
 
 **EP-Q5** *(Leadership Commitment)* *(Yes/No)*
 Has leadership made investment/staffing decisions based on the assessed team's metrics in the past year?
+
+[ ] Yes  [ ] No
+
+Evidence: ___________________________
+
+**EP-Q6** *(Team Structure)* *(Yes/No)*
+Are designated owners assigned for key detection engineering activities in the assessed team?
 
 [ ] Yes  [ ] No
 
@@ -548,6 +576,13 @@ Rate cross-team collaboration involving the assessed detection engineering funct
 | 3 | Regular collaboration through defined channels; scheduled touchpoints at least monthly with IR and threat intel teams |
 | 4 | Deep integration with joint planning sessions at least quarterly, shared OKRs/objectives, and integrated workflows (e.g., threat intel feeds directly inform detection priorities) |
 | 5 | Seamless cross-functional collaboration with automated information sharing, shared metrics dashboards, and embedded team members |
+
+Evidence: ___________________________
+
+**EG-Q5** *(Detection Lifecycle)* *(Yes/No)*
+Is there a defined process to incorporate incident lessons learned into the assessed team's detection rule updates?
+
+[ ] Yes  [ ] No
 
 Evidence: ___________________________
 
