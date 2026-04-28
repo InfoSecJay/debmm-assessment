@@ -1,6 +1,6 @@
 # DEBMM Assessment Questionnaire
 
-> 46 questions across 7 categories. All answers are dropdown selections.
+> 46 questions across 7 categories. Answer each Yes/No question with a checkbox, and each Scale question by circling a rating from 1–5.
 > Use the Evidence line under each question to record supporting notes (required for audits, optional for self-assessments).
 
 **Organization**: ___________________________

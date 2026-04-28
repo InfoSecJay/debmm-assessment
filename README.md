@@ -1,7 +1,6 @@
 # DEBMM Assessment Tool
 
-A practical toolkit for SOC managers to assess their detection engineering team's maturity using [Elastic's Detection Engineering Behavior Maturity Model (DEBMM)](https://www.elastic.co/security-labs/elastic-releases-debmm), enriched with organizational dimensions from [detectionengineering.io](https://detectionengineering.io/).
-
+A toolkit for SOC managers to assess detection engineering maturity, based on [Elastic's Detection Engineering Behavior Maturity Model (DEBMM)](https://www.elastic.co/security-labs/elastic-releases-debmm) enriched with organizational dimensions from [detectionengineering.io](https://detectionengineering.io/).
 
 ## Screenshots
 
@@ -14,297 +13,121 @@ A practical toolkit for SOC managers to assess their detection engineering team'
   </tr>
 </table>
 
-
-## What This Is
+## What It Is
 
 A structured assessment covering **24 criteria** across **7 categories** with **46 dropdown questions** (no free-text required):
 
-- **Tier 0 - Foundation**: Rule development, maintenance, roadmaps, threat modeling
-- **Tier 1 - Basic**: Baseline rules, ruleset management, telemetry, testing
-- **Tier 2 - Intermediate**: False positive reduction, gap analysis, internal validation
-- **Tier 3 - Advanced**: False negative triage, external validation, advanced TTP coverage
-- **Tier 4 - Expert**: Threat hunting, automation, AI/LLM integration
+- **Tier 0 — Foundation**: Rule development, maintenance, roadmaps, threat modeling
+- **Tier 1 — Basic**: Baseline rules, ruleset management, telemetry, testing
+- **Tier 2 — Intermediate**: False positive reduction, gap analysis, internal validation
+- **Tier 3 — Advanced**: False negative triage, external validation, advanced TTP coverage
+- **Tier 4 — Expert**: Threat hunting, automation, AI/LLM integration
 - **People & Organization** (enrichment): Team structure, training, leadership
 - **Process & Governance** (enrichment): Lifecycle, metrics, collaboration
 
-Each criterion is scored on a 1-5 maturity scale (Initial → Optimized). Your **achieved tier** is the highest tier where all criteria (in that tier and all below) score >= 3.0 — enforcing the progressive nature of the model.
+Each criterion is scored on a 1–5 maturity scale (Initial → Optimized). The **achieved tier** is the highest tier where every criterion in that tier and below scores ≥ 3.0 — enforcing the model's progressive philosophy.
+
+The same template handles self-assessments and external audits. Every question has an **Evidence / Notes** column: leave it blank for self-assessments, or fill it in to document the basis for each rating during an audit.
 
 ## Prerequisites
 
 - **Python 3.10+** with pip
 - **Node.js 18+** with npm (for PowerPoint report generation)
-- **Microsoft Excel** or compatible spreadsheet app (for filling out assessments)
+- **Microsoft Excel** or a compatible spreadsheet app
 
-## Quick Start — One-Time Setup
-
-### 1. Fork and Clone
-
-Fork this repo for your organization, then clone it:
+## Quick Start
 
 ```bash
+# Clone and install
 git clone https://github.com/<your-org>/debmm-assessment.git
 cd debmm-assessment
-```
-
-### 2. Install Dependencies
-
-```bash
 pip install -r scorer/requirements.txt
 npm install
-```
 
-### 3. Generate the Assessment Spreadsheet
-
-```bash
+# Generate the assessment spreadsheet
 python scorer/generate_spreadsheet.py
 ```
 
-This creates `templates/debmm-assessment.xlsx`. The same template works for self-assessments and external audits — every question has an Evidence / Notes column for supporting context (required for audits, optional for self-assessments). You only need to regenerate the spreadsheet if you modify the rubric or questionnaire YAML files.
+Open `templates/debmm-assessment.xlsx` in Excel and fill in your organization details and the 46 dropdown answers across 7 tabs:
+
+| Tab | Purpose |
+|-----|---------|
+| **Instructions** | Overview and maturity-level definitions |
+| **Assessment** | Org details and all 46 questions |
+| **Results Dashboard** | Auto-calculated scores, tier determination, color-coded heatmap |
+| **Tier Scores Chart** | DEBMM core tier bar chart |
+| **Readiness Chart** | Organizational readiness bar chart |
+| **Rubric Reference** | Full rubric for reference while answering |
+| **Report Data** | Flat data export for Power BI / report generation |
+
+**Save the file in Excel** so all formulas evaluate. Then extract the data and generate the reports:
+
+```bash
+# Extract data; --history upserts this period into the trend file
+python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
+
+# Generate the point-in-time and trend PowerPoint reports
+node scorer/generate_report.js data.json snapshot.pptx
+node scorer/generate_trend.js history.json trend.pptx
+```
+
+You only need to regenerate the spreadsheet if you edit the rubric or questionnaire YAML files.
 
 ## Monthly Workflow
 
-### First Assessment
+Repeat the extract + report steps each month. The `--history` flag upserts by period (derived from the spreadsheet's Date field, or override with `--date YYYY-MM`), so re-running mid-month replaces the existing entry rather than appending. Skip `--history` if you only want a point-in-time snapshot.
 
-#### 1. Fill Out the Assessment
+## Reports
 
-Open `templates/debmm-assessment.xlsx` in Excel. The spreadsheet has 7 tabs:
+### Point-in-Time (`generate_report.js`)
 
-1. **Instructions** — Overview and maturity level definitions
-2. **Assessment** — Fill in org details and answer all 46 questions using dropdowns
-3. **Results Dashboard** — Scores calculate automatically with tier determination and color-coded heatmap
-4. **Tier Scores Chart** — DEBMM core tier bar chart
-5. **Readiness Chart** — Organizational readiness bar chart
-6. **Rubric Reference** — Full rubric for reference while answering
-7. **Report Data** — Flat data export for Power BI or report generation
-
-**Save the file in Excel** after completing the assessment (this evaluates all formulas).
-
-#### 2. Extract Data
-
-After saving the completed spreadsheet in Excel, extract the data:
-
-```bash
-python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
-```
-
-This single command does two things:
-- Writes **`data.json`** — a snapshot of this assessment (used by the point-in-time report)
-- Creates/updates **`history.json`** — appends this month's results to the history file (used by the trend report)
-
-The date period is automatically derived from the spreadsheet's Date field. To override (e.g. for retroactive entries):
-
-```bash
-python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json --date 2026-01
-```
-
-> **Note:** You can also extract without `--history` if you only want the point-in-time report:
-> ```bash
-> python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json
-> ```
-
-#### 3. Generate Reports
-
-You now have the data files needed for both report types. Run either or both:
-
----
-
-### Recurring Monthly Updates
-
-Each month, repeat steps 1-3: update answers in the spreadsheet, save in Excel, re-extract, and generate reports. The `--history` flag upserts by date — if the same month already exists, it replaces the entry.
-
----
-
-## Generating Reports
-
-Two independent PowerPoint reports are available. You can run either or both after extracting data.
-
-### Point-in-Time Report
-
-A 4-slide exec-ready snapshot of a single assessment. Requires `data.json` from the extract step.
-
-**Step 1:** Extract data (if not already done):
-```bash
-python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json
-```
-
-**Step 2:** Generate the report:
-```bash
-node scorer/generate_report.js data.json my-report.pptx
-```
-
-**What you get** — a dark-themed 4-slide PowerPoint deck:
+A 4-slide dark-themed PowerPoint deck for executive review:
 
 | Slide | Content |
 |-------|---------|
-| **1 - Title** | Overall score, achieved tier, completion count, pass/fail summary |
-| **2 - Tier Overview** | 5 tier KPI cards with scores, levels, status indicators, and progression bar |
-| **3 - Core Breakdown** | All 18 DEBMM core criteria with scores, maturity levels, score bars, and pass/fail status |
-| **4 - Enrichment** | 6 enrichment criteria cards grouped by category (People & Org, Process & Governance) with averages |
+| **1 — Title** | Overall score, achieved tier, completion count, pass/fail summary |
+| **2 — Tier Overview** | 5 tier KPI cards with scores, levels, status indicators, and a progression bar |
+| **3 — Core Breakdown** | All 18 DEBMM core criteria with scores, maturity levels, and pass/fail status |
+| **4 — Enrichment** | 6 enrichment criteria grouped by category (People & Org, Process & Governance), with averages |
 
-**Full example:**
-```bash
-# Extract from a completed assessment
-python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json
+### Trend (`generate_trend.js`)
 
-# Generate the report
-node scorer/generate_report.js data.json reports/2026-02-snapshot.pptx
-```
-
-### Trend Report
-
-A 3-slide report showing progress over time. Requires `history.json` with 1+ assessment entries.
-
-**Step 1:** Make sure you've been extracting with `--history` each month:
-```bash
-# Each month when you extract, include --history to build up the trend data
-python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
-```
-
-**Step 2:** Generate the trend report:
-```bash
-node scorer/generate_trend.js history.json my-trend.pptx
-```
-
-**What you get** — a dark-themed 3-slide PowerPoint deck:
+A 3-slide PowerPoint deck showing progress over time. Works with 1+ history entries (baseline mode in month 1, full trend analysis from month 2 onward):
 
 | Slide | Content |
 |-------|---------|
-| **1 - Score Trajectory** | Line chart of overall score over time with 3.0 threshold line, tier achievement badges, and date labels. (With only 1 entry, shows a "Baseline Established" card instead.) |
-| **2 - Per-Tier Trends** | 5 tier cards showing current score, delta from previous month, pass/fail status, and sparkline bar chart history. Flags assessor changes automatically. |
-| **3 - Criteria Delta** | Two tables: "Biggest Improvements" (top 5 by score increase) and "Needs Attention" (regressions + criteria closest to the 3.0 threshold). Summary stats at bottom. |
+| **1 — Score Trajectory** | Line chart of overall score with 3.0 threshold line and tier achievement badges |
+| **2 — Per-Tier Trends** | 5 tier cards with current score, delta from previous month, and sparkline history. Flags assessor changes |
+| **3 — Criteria Delta** | "Biggest Improvements" and "Needs Attention" tables with regressions and criteria nearest the 3.0 threshold |
 
-**Full example — first month (baseline):**
-```bash
-# First assessment — creates history.json with 1 entry
-python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
+### Edge Cases
 
-# Trend report shows "Baseline Established" with current scores
-node scorer/generate_trend.js history.json reports/2026-01-trend.pptx
-```
+| Scenario | Behavior |
+|----------|----------|
+| Missed a month | Trend chart shows actual dates with gaps — no interpolation |
+| Re-run mid-month | `--history` upserts by date; the existing entry is replaced |
+| Retroactive entry | Override the period: `... --history history.json --date 2025-12` |
+| Assessor changes | Flagged automatically on Slide 2 of the trend report |
+| Changed criteria | Only criteria present in both periods are compared; new/removed are handled gracefully |
 
-**Full example — subsequent months (with trends):**
-```bash
-# Month 2 — update spreadsheet, save in Excel, then extract
-python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
-
-# Now history.json has 2+ entries, trend report shows full analysis
-node scorer/generate_trend.js history.json reports/2026-02-trend.pptx
-```
-
-**Full example — generate both reports at once:**
-```bash
-# Extract data and update history
-python scorer/extract_data.py templates/debmm-assessment.xlsx -o data.json --history history.json
-
-# Generate both reports
-node scorer/generate_report.js data.json reports/2026-02-snapshot.pptx
-node scorer/generate_trend.js history.json reports/2026-02-trend.pptx
-```
-
-## Handling Common Scenarios
-
-| Scenario | What to Do |
-|----------|------------|
-| **Missed a month** | No action needed. The trend chart shows actual assessment dates with gaps — no interpolation. |
-| **Re-run mid-month** | Just re-extract. The `--history` flag upserts by date, so the existing entry for that month is replaced. |
-| **Retroactive entry** | Use `--date YYYY-MM` to override the period: `python scorer/extract_data.py ... --history history.json --date 2025-12` |
-| **Assessor changes** | The trend report automatically detects assessor changes and flags them with a warning on Slide 2. |
-| **Changed criteria/rubric** | Only criteria present in both the latest and previous period are compared. New or removed criteria are handled gracefully. |
-
-## Alternative Scoring Methods
-
-### YAML + Python CLI
-
-For technical users or CI/CD integration:
+## Alternative Scoring Paths
 
 ```bash
-# Copy and fill out the response template
+# YAML response file (CI/CD-friendly)
 cp templates/response-template.yaml my-assessment.yaml
-# Edit my-assessment.yaml with your answers...
+# fill in answers, then:
+python scorer/score.py my-assessment.yaml [--json | --report report.md]
 
-# Score it (rich terminal output)
-python scorer/score.py my-assessment.yaml
+# Score directly from a filled-out spreadsheet
+python scorer/score.py --from-xlsx my-assessment.xlsx --report report.md
 
-# Generate a markdown report
-python scorer/score.py my-assessment.yaml --report my-report.md
-
-# Output raw JSON
-python scorer/score.py my-assessment.yaml --json
+# LLM-assisted scoring — flags answer inconsistencies and adds AI-generated improvement recommendations
+pip install anthropic    # or: openai
+export ANTHROPIC_API_KEY=...
+python scorer/llm_scorer.py my-assessment.yaml --report report.md
 ```
 
-### Score from a Filled-Out Spreadsheet
-
-```bash
-python scorer/score.py --from-xlsx my-filled-assessment.xlsx --report my-report.md
-```
-
-### LLM-Assisted Scoring
-
-Scores text answers automatically, identifies inconsistencies, and generates improvement recommendations:
-
-```bash
-pip install anthropic  # or: pip install openai
-export ANTHROPIC_API_KEY=your-key-here
-
-python scorer/llm_scorer.py my-assessment.yaml --report my-report.md
-```
-
-### Printable Markdown (No Tooling)
-
-For pen-and-paper or workshop-style assessments:
-
-1. Open [`questionnaire/questionnaire.md`](questionnaire/questionnaire.md)
-2. Score using [`rubric/rubric.md`](rubric/rubric.md)
-3. Tally scores using the [methodology](docs/methodology.md)
-
-## CLI Reference
-
-### `scorer/generate_spreadsheet.py`
-
-```
-python scorer/generate_spreadsheet.py [-o OUTPUT]
-```
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `-o` | `templates/debmm-assessment.xlsx` | Output path for generated spreadsheet |
-
-### `scorer/extract_data.py`
-
-```
-python scorer/extract_data.py <xlsx> [-o OUTPUT] [--history HISTORY] [--date YYYY-MM]
-```
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `<xlsx>` | *(required)* | Path to completed assessment spreadsheet |
-| `-o` | `<input>_data.json` | Output path for extracted JSON |
-| `--history` | *(none)* | Path to history file — appends/upserts this assessment |
-| `--date` | *(auto)* | Override period (YYYY-MM). Default: from spreadsheet date or current month |
-
-### `scorer/generate_report.js`
-
-```
-node scorer/generate_report.js <data.json> [output.pptx]
-```
-
-Generates a 4-slide point-in-time assessment report from a single extract.
-
-### `scorer/generate_trend.js`
-
-```
-node scorer/generate_trend.js <history.json> [output.pptx]
-```
-
-Generates a 3-slide trend report from the history file. Works with 1+ entries (baseline mode with 1, full trends with 2+).
-
-### `scorer/score.py`
-
-```
-python scorer/score.py <assessment.yaml> [--report OUTPUT.md] [--json] [--from-xlsx FILE]
-```
-
-CLI scorer with rich terminal output, markdown reports, or raw JSON.
+For pen-and-paper or workshop-style assessments, see [`questionnaire/questionnaire.md`](questionnaire/questionnaire.md) — it's printable and includes an Evidence line under every question.
 
 ## Project Structure
 
@@ -312,60 +135,51 @@ CLI scorer with rich terminal output, markdown reports, or raw JSON.
 debmm-assessment/
 ├── README.md
 ├── LICENSE
-├── package.json                          # Node.js dependencies (pptxgenjs)
+├── package.json                          # Node dependencies (pptxgenjs)
 ├── rubric/
 │   ├── rubric.yaml                       # Machine-readable rubric (24 criteria, 5 levels each)
 │   └── rubric.md                         # Human-readable rubric with scoring tables
 ├── questionnaire/
-│   ├── questionnaire.yaml                # Master questionnaire (46 questions, structured)
-│   └── questionnaire.md                  # Printable questionnaire (works for self and audit)
+│   ├── questionnaire.yaml                # Master questionnaire (46 questions)
+│   └── questionnaire.md                  # Printable questionnaire with Evidence lines
 ├── scorer/
 │   ├── requirements.txt                  # Python dependencies
-│   ├── generate_spreadsheet.py           # Generates the all-in-one Excel assessment
-│   ├── extract_data.py                   # Extracts assessment data from xlsx to JSON
-│   ├── generate_report.js                # Generates 4-slide PowerPoint report from JSON
-│   ├── generate_trend.js                 # Generates 3-slide trend report from history
-│   ├── score.py                          # Automated CLI scorer (YAML or Excel input)
+│   ├── generate_spreadsheet.py           # Builds the all-in-one Excel assessment
+│   ├── extract_data.py                   # Excel → JSON for reporting
+│   ├── generate_report.js                # 4-slide point-in-time PowerPoint
+│   ├── generate_trend.js                 # 3-slide trend PowerPoint
+│   ├── score.py                          # CLI scorer (YAML or Excel input)
 │   ├── report.py                         # Markdown report generator
-│   └── llm_scorer.py                     # LLM-assisted scorer (Anthropic/OpenAI)
+│   └── llm_scorer.py                     # LLM-assisted scorer (Anthropic / OpenAI)
 ├── templates/
-│   ├── debmm-assessment.xlsx             # Generated assessment spreadsheet (with Evidence column)
+│   ├── debmm-assessment.xlsx             # Generated spreadsheet (with Evidence column)
 │   ├── response-template.yaml            # Blank YAML response template
-│   └── example-response.yaml             # Example: mid-maturity organization
+│   └── example-response.yaml             # Worked example: mid-maturity organization
 └── docs/
     └── methodology.md                    # Scoring methodology and interpretation guide
 ```
 
 ## How Scoring Works
 
-- **Scale questions** (1-5): Each dropdown option maps directly to a maturity score with quantitative thresholds from the rubric
-- **Checklist questions** (yes/no): Yes maps to a maturity level (typically 3-4), No maps to 1
+- **Scale questions** (1–5): the dropdown selection is the score directly.
+- **Checklist questions** (Yes/No): Yes maps to a maturity level (typically 3 or 4); No maps to 1.
 
-**Tier determination**: Your achieved tier is the highest tier where **all** criteria (in that tier and all below) score >= 3.0 (Defined level). A single criterion below 3.0 anywhere in the chain caps your tier — this enforces the progressive nature of the model.
+**Tier determination**: your achieved tier is the highest tier where every criterion in that tier and below scores ≥ 3.0 (Defined). A single criterion below 3.0 caps the achieved tier. Enrichment categories (People & Organization, Process & Governance) contribute to the overall score but do not affect tier determination.
 
-See [docs/methodology.md](docs/methodology.md) for the full scoring methodology.
-
-## Self-Assessment vs. Audit
-
-The same spreadsheet works for both. Every question has an **Evidence / Notes** column:
-
-- **Self-assessment** — leave Evidence blank or use it to capture supporting context as you go.
-- **External audit** — fill Evidence for every question to document the basis for each rating (logs, screenshots, ticket links, interview notes).
-
-There is no separate audit template or `--mode` flag — the workflow is identical, only the rigor of the Evidence column changes.
+See [docs/methodology.md](docs/methodology.md) for the full methodology.
 
 ## Customization
 
-- **Adjust weights**: Edit `weight` values in `rubric.yaml` to emphasize criteria important to your org
-- **Add questions**: Add entries to `questionnaire.yaml` mapped to existing criteria
-- **Modify rubric**: Edit maturity level descriptions in `rubric.yaml` to match your context
-- **Regenerate spreadsheet**: After editing YAML sources, re-run `generate_spreadsheet.py`
+- **Weights** — edit `weight` values in `rubric.yaml` to emphasize criteria important to your org
+- **Questions** — add entries to `questionnaire.yaml` mapped to existing criteria
+- **Rubric language** — edit maturity-level descriptions in `rubric.yaml` to match your context
+- **Regenerate** — re-run `python scorer/generate_spreadsheet.py` after editing YAML sources
 
 ## References
 
-- [Elastic DEBMM](https://www.elastic.co/security-labs/elastic-releases-debmm) - Primary framework
-- [Detection Engineering Maturity Matrix](https://detectionengineering.io/) - Enrichment dimensions
-- [MITRE ATT&CK](https://attack.mitre.org/) - Threat coverage framework referenced throughout
+- [Elastic DEBMM](https://www.elastic.co/security-labs/elastic-releases-debmm) — primary framework
+- [Detection Engineering Maturity Matrix](https://detectionengineering.io/) — enrichment dimensions
+- [MITRE ATT&CK](https://attack.mitre.org/) — threat coverage framework referenced throughout
 
 ## License
 

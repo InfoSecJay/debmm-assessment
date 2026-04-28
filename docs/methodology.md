@@ -9,7 +9,7 @@ This document explains how the DEBMM Assessment Tool scores organizations and de
 The [Detection Engineering Behavior Maturity Model (DEBMM)](https://www.elastic.co/security-labs/elastic-releases-debmm) by Elastic Security Labs provides the core structure:
 
 - **5 Maturity Tiers** (0: Foundation through 4: Expert) representing progressive levels of detection engineering capability
-- **15 Criteria** across those tiers, each with qualitative behaviors and quantitative thresholds
+- **18 Core Criteria** across those tiers, each with qualitative behaviors and quantitative thresholds
 - **5 Behavior Levels** per criterion (Initial, Repeatable, Defined, Managed, Optimized) loosely aligned with the NIST CSF maturity model
 
 ### Enrichment: Detection Engineering Maturity Matrix
@@ -25,21 +25,20 @@ These enrichment categories ensure SOC managers get a complete picture beyond ju
 
 ### Question Types and Scoring
 
+All 46 questions are dropdowns — there are no free-text questions:
+
 | Type | Input | Scoring Method |
 |------|-------|----------------|
-| **Checklist** | Yes/No | Yes maps to a predefined maturity value (typically 3-4); No maps to 1 |
-| **Scale** | 1-5 integer | Used directly as the maturity score |
-| **Text** | Free-form | Not auto-scored; flagged for manual review or LLM scoring |
+| **Checklist** | Yes/No | Yes maps to a predefined maturity value (typically 3 or 4); No maps to 1 |
+| **Scale** | 1–5 integer | Used directly as the maturity score |
 
 ### Criterion Score
 
-Each criterion has 2-4 questions. The criterion score is the **arithmetic mean** of all scored questions for that criterion:
+Each criterion has 1–4 questions. The criterion score is the **arithmetic mean** of all scored questions for that criterion:
 
 ```
 criterion_score = sum(question_scores) / count(scored_questions)
 ```
-
-Text questions are excluded from the automated average unless scored by the LLM scorer, in which case they are included.
 
 ### Tier Score
 
@@ -76,52 +75,18 @@ Example:
 
 Note: Enrichment categories (People & Organization, Process & Governance) contribute to the overall score but do **not** affect tier determination, as they extend beyond the core DEBMM model.
 
-## Three Scoring Paths
+## Scoring Paths
 
-### 1. Manual (Spreadsheet/Print)
+The repo supports four equivalent ways to capture and score answers — see the [README](../README.md) for full command reference. All paths produce the same scoring output:
 
-Use the markdown questionnaire (`questionnaire/questionnaire.md`):
+| Path | Input | When to use |
+|------|-------|-------------|
+| **Spreadsheet** (default) | `templates/debmm-assessment.xlsx` | Most users — formulas calculate scores live as you fill in answers |
+| **YAML CLI** | `templates/response-template.yaml` | CI/CD or version-controlled assessments |
+| **From spreadsheet** | filled `.xlsx` → `score.py --from-xlsx` | Score a completed spreadsheet without first extracting data |
+| **Printable markdown** | `questionnaire/questionnaire.md` | Pen-and-paper or workshop-style assessments |
 
-1. Print or fill in the markdown questionnaire (capture notes on the Evidence line under each question)
-2. Tally checklist items and scale scores manually
-3. Calculate criterion averages and tier scores using the formulas above
-4. Review qualitatively against the rubric
-
-Best for: Quick assessments, workshops, teams without Python/tooling.
-
-### 2. Automated (Python CLI)
-
-```bash
-pip install -r scorer/requirements.txt
-python scorer/score.py templates/example-response.yaml
-```
-
-The scorer:
-- Automatically scores checklist and scale questions
-- Calculates all criterion, tier, and overall scores
-- Determines the achieved tier
-- Flags text answers as "needs review"
-- Generates recommendations for below-Defined criteria
-- Outputs to terminal (rich), JSON, or markdown report
-
-Best for: Consistent, repeatable scoring with version-controllable results.
-
-### 3. LLM-Assisted
-
-```bash
-pip install anthropic  # or: pip install openai
-export ANTHROPIC_API_KEY=your-key-here
-
-python scorer/llm_scorer.py templates/example-response.yaml --report report.md
-```
-
-Extends automated scoring by:
-- Scoring text/written answers on the 1-5 maturity scale
-- Identifying inconsistencies between checklist/scale and text answers
-- Generating detailed, context-aware improvement recommendations
-- Merging LLM scores into the overall results
-
-Best for: Comprehensive assessments where text answers contain important context that should influence scoring.
+The **LLM-assisted scorer** (`scorer/llm_scorer.py`) layers on top of the YAML path to provide AI-generated improvement recommendations and inconsistency checks; it does not change the underlying scoring.
 
 ## Interpreting Results
 
@@ -137,12 +102,12 @@ Best for: Comprehensive assessments where text answers contain important context
 
 ### Reading the Report
 
-1. **Start with the achieved tier** - This tells you where the organization solidly stands
-2. **Check overall score** - The weighted average shows general maturity across all dimensions
-3. **Review tier scores** - Identify which tiers are strong vs. weak
-4. **Look at enrichment scores** - People and process gaps often block technical progress
-5. **Follow recommendations** - Prioritize high-priority items in foundational tiers
-6. **Review text answers** - These provide the qualitative context behind the numbers
+1. **Start with the achieved tier** — this tells you where the organization solidly stands
+2. **Check the overall score** — the weighted average shows general maturity across all dimensions
+3. **Review tier scores** — identify which tiers are strong versus weak
+4. **Look at enrichment scores** — people and process gaps often block technical progress
+5. **Follow the recommendations** — prioritize high-priority items in foundational tiers
+6. **Read the Evidence column** — supporting notes provide the qualitative context behind the numbers
 
 ### Common Patterns
 
@@ -154,8 +119,8 @@ Best for: Comprehensive assessments where text answers contain important context
 ## Limitations
 
 - Self-reported scores may reflect aspiration rather than reality. Filling out the Evidence column for each answer (required for audits, optional for self-assessments) is the best mitigation
-- Checklist yes/no scoring is coarse; a "yes" for peer review might mean "sometimes" vs. "always"
-- Text scoring by LLM is non-deterministic and should be validated by a human
+- Checklist Yes/No scoring is coarse; a "Yes" for peer review might mean "sometimes" rather than "always"
+- LLM-generated recommendations are non-deterministic and should be validated by a human
 - Weights are equal by default and should be tuned to the organization's context
 - The enrichment categories are a simplified adaptation of detectionengineering.io's framework
 
