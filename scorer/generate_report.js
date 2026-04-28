@@ -16,7 +16,6 @@ const data = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
 const org = data.org;
 const assessor = data.assessor;
 const assessDate = data.date || new Date().toISOString().split("T")[0];
-const assessType = data.type;
 const overallScore = data.overallScore;
 const achievedTier = data.achievedTier;
 const completion = data.completion;
@@ -134,7 +133,7 @@ s1.addText("DEBMM Assessment Report", {
 
 // Subtitle
 s1.addText(
-  `${assessType} — ${typeof assessDate === "number" ? "Current Period" : assessDate}`,
+  `DEBMM Assessment — ${typeof assessDate === "number" ? "Current Period" : assessDate}`,
   {
     x: 0.6,
     y: 2.5,

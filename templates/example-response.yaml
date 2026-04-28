@@ -7,8 +7,7 @@ metadata:
   assessor_name: "Jane Smith"
   assessor_role: "SOC Manager"
   date: "2026-02-15"
-  assessment_type: self
-  notes: "Annual self-assessment for 2026 planning. Team of 3 analysts, 1 detection engineer."
+  notes: "Annual assessment for 2026 planning. Team of 3 analysts, 1 detection engineer."
 
 responses:
 

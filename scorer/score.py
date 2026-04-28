@@ -51,7 +51,6 @@ def load_xlsx_responses(xlsx_path: Path, questionnaire_path: Path) -> dict:
         "assessor_name": ws["D5"].value or "",
         "assessor_role": ws["D6"].value or "",
         "date": str(ws["D7"].value or ""),
-        "assessment_type": str(ws["D8"].value or "self").lower().replace("-", "_").replace("self_assessment", "self"),
     }
 
     # Scan rows for question IDs in column B, answers in column E, evidence in column G
@@ -59,7 +58,7 @@ def load_xlsx_responses(xlsx_path: Path, questionnaire_path: Path) -> dict:
     for row in ws.iter_rows(min_row=2, max_col=8):
         cell_a = row[1].value  # Column B: ID
         cell_f = row[4].value  # Column E: Answer
-        cell_h = row[6].value  # Column G: Evidence (audit mode)
+        cell_h = row[6].value  # Column G: Evidence
 
         if cell_a is None or cell_a not in q_index:
             continue
@@ -424,12 +423,11 @@ def print_results_rich(results: dict):
     org = meta.get("organization", "Unknown")
     assessor = meta.get("assessor_name", "Unknown")
     date = meta.get("date", "Unknown")
-    atype = meta.get("assessment_type", "Unknown")
 
     console.print()
     console.print(Panel(
         f"[bold]{org}[/bold]\n"
-        f"Assessor: {assessor} | Date: {date} | Type: {atype}",
+        f"Assessor: {assessor} | Date: {date}",
         title="[bold blue]DEBMM Assessment Results[/bold blue]",
         border_style="blue",
     ))
@@ -525,7 +523,6 @@ def print_results_plain(results: dict):
     print(f"Organization: {meta.get('organization', 'Unknown')}")
     print(f"Assessor: {meta.get('assessor_name', 'Unknown')}")
     print(f"Date: {meta.get('date', 'Unknown')}")
-    print(f"Type: {meta.get('assessment_type', 'Unknown')}")
     print(f"\nOverall Score: {results['overall_score']}/5.0")
     print(f"Achieved Tier: {results['tier_determination']['tier_name']}")
     print(f"Questions Scored: {results['scored_count']}/{results['question_count']}")

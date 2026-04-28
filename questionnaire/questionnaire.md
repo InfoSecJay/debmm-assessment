@@ -1,6 +1,7 @@
-# DEBMM Self-Assessment Questionnaire
+# DEBMM Assessment Questionnaire
 
 > 46 questions across 7 categories. All answers are dropdown selections.
+> Use the Evidence line under each question to record supporting notes (required for audits, optional for self-assessments).
 
 **Organization**: ___________________________
 **Assessor**: ___________________________
@@ -23,10 +24,14 @@ Rate the maturity of your team's rule development process.
 | 4 | Standardized across team with enforced workflows, templates, and quality gates (80-90% schema alignment; all new rules go through formal review) |
 | 5 | Continuous improvement via feedback loops; fully integrated with CI/CD and automated linting/validation (90-100% schema alignment) |
 
+Evidence: ___________________________
+
 **T0-Q2** *(Structured Rule Development)* *(Yes/No)*
 Do all new detection rules go through peer review before deployment to production?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 ### Rule Creation and Maintenance
 
@@ -41,6 +46,8 @@ What percentage of your detection rules are reviewed on a regular schedule?
 | 4 | 80-90% reviewed on schedule; comprehensive lifecycle management (create, test, deploy, monitor, retire); 100% peer review on changes |
 | 5 | 90-100% reviewed on schedule; automated rule health monitoring flags stale or broken rules for review |
 
+Evidence: ___________________________
+
 ### Roadmap Documentation
 
 **T0-Q4** *(Roadmap Documentation)* *(Scale 1-5)*
@@ -53,6 +60,8 @@ Rate the maturity of your detection engineering roadmap.
 | 3 | Formal roadmap documented, reviewed at least quarterly, shared with stakeholders; priorities are clear (50-70% of planned work tracked) |
 | 4 | Integrated with organizational security strategy; progress tracked with metrics and reported to leadership (70-90% tracked; quarterly leadership reviews) |
 | 5 | Dynamic, continuously updated roadmap driven by threat intel, gap analysis, and risk priorities (90-100% tracked; auto-updated from analysis feeds) |
+
+Evidence: ___________________________
 
 ### Threat Modeling
 
@@ -67,20 +76,28 @@ How frequently does your team perform threat modeling to inform detection priori
 | 4 | Quarterly or more; outputs directly prioritize new detection development (>70% of new detections tied to threat model outputs) |
 | 5 | Continuous proactive modeling incorporating real-time threat intel, attack surface changes, and emerging TTPs |
 
+Evidence: ___________________________
+
 **T0-Q6** *(Threat Modeling)* *(Yes/No)*
 Does your threat modeling use a recognized framework (e.g., STRIDE, MITRE ATT&CK, PASTA, attack trees)?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 **T0-Q7** *(Threat Modeling)* *(Yes/No)*
 Do threat modeling outputs directly generate items on your detection engineering backlog or roadmap?
 
 [ ] Yes  [ ] No
 
+Evidence: ___________________________
+
 **T0-Q8** *(Threat Modeling)* *(Yes/No)*
 Does your team maintain a documented inventory of critical assets (endpoints, servers, cloud workloads, identities) mapped to detection coverage?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 ---
 
@@ -99,6 +116,8 @@ How many custom detection rules does your team maintain (excluding vendor defaul
 | 4 | 60-100 rules including behavioral and TTP-focused detections tuned per environment |
 | 5 | 100+ rules with continuous refinement, environment-specific tuning, and automated coverage analysis |
 
+Evidence: ___________________________
+
 **T1-Q2** *(Baseline Rule Creation)* *(Scale 1-5)*
 Estimate your MITRE ATT&CK technique coverage for your organization's priority threat areas.
 
@@ -109,6 +128,8 @@ Estimate your MITRE ATT&CK technique coverage for your organization's priority t
 | 3 | 30-50% of priority techniques covered with documented gaps identified |
 | 4 | 50-70% coverage including behavioral detections; gaps tracked against threat model |
 | 5 | Over 70% coverage with continuous gap analysis and automated coverage tracking |
+
+Evidence: ___________________________
 
 ### Ruleset Management
 
@@ -123,6 +144,8 @@ Rate the maturity of your ruleset management practices.
 | 4 | Detection-as-code is standard practice; CI/CD pipelines handle rule testing and deployment; all rules documented and versioned (80-90% in DaC pipeline) |
 | 5 | Fully automated rule lifecycle: CI/CD, automated testing, continuous validation, and weekly maintenance cycles (100% DaC) |
 
+Evidence: ___________________________
+
 ### Telemetry Quality
 
 **T1-Q4** *(Telemetry Quality)* *(Scale 1-5)*
@@ -136,15 +159,21 @@ Rate the quality and coverage of your telemetry data sources for detection.
 | 4 | Comprehensive with automated health monitoring, CTI enrichment, and proactive gap identification (70-90% coverage) |
 | 5 | Advanced workflows with real-time enrichment, automated remediation of telemetry gaps, full CTI integration (90-100% coverage) |
 
+Evidence: ___________________________
+
 **T1-Q5** *(Telemetry Quality)* *(Yes/No)*
 Do you maintain a documented inventory of telemetry data sources mapped to detection use cases?
 
 [ ] Yes  [ ] No
 
+Evidence: ___________________________
+
 **T1-Q6** *(Telemetry Quality)* *(Yes/No)*
 Do you have automated alerting for when critical data sources stop ingesting or degrade in quality?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 ### Threat Landscape Review
 
@@ -159,6 +188,8 @@ How frequently does your team review the threat landscape to update detection pr
 | 4 | Monthly reviews integrated with threat intelligence feeds; detection priorities continuously aligned (70-90% aligned) |
 | 5 | Real-time threat landscape monitoring with automated intel feeds driving detection priority updates (90-100% aligned) |
 
+Evidence: ___________________________
+
 ### Product Owner Engagement
 
 **T1-Q8** *(Product Owner Engagement)* *(Scale 1-5)*
@@ -172,6 +203,8 @@ Rate the engagement between your detection engineering team and security product
 | 4 | Monthly proactive partnership; detection requirements tracked on product roadmaps (>50% of requests on roadmap) |
 | 5 | Continuous engagement with joint planning, shared success metrics, and detection needs directly influencing product development |
 
+Evidence: ___________________________
+
 ### Release Testing
 
 **T1-Q9** *(Release Testing)* *(Scale 1-5)*
@@ -184,6 +217,8 @@ Rate the maturity of your detection rule testing before production deployment.
 | 3 | Standardized testing with defined test cases and a staging/test environment; most rules validated before deploy (50-70% tested) |
 | 4 | Comprehensive testing including unit tests, integration tests, and emulation-based validation; rapid deployment for emerging threats (70-90% automated; 24hr critical deployment capability) |
 | 5 | Continuous automated testing in full CI/CD pipeline; every rule validated before every deployment (90-100% automated) |
+
+Evidence: ___________________________
 
 ---
 
@@ -202,6 +237,8 @@ Rate the maturity of your false positive tuning and reduction program.
 | 4 | Comprehensive FP management with automated tuning suggestions, risk-based alert scoring, and continuous monitoring (>50% FP reduction) |
 | 5 | Automated dynamic tuning with ML; near-zero unnecessary alert noise; continuous optimization (>75% FP reduction from baseline) |
 
+Evidence: ___________________________
+
 **T2-Q2** *(False Positive Reduction)* *(Scale 1-5)*
 What is your estimated false positive reduction from initial baseline across your tuned rules?
 
@@ -212,6 +249,8 @@ What is your estimated false positive reduction from initial baseline across you
 | 3 | 25-50% reduction with per-rule FP rate tracking |
 | 4 | 50-75% reduction with automated tuning recommendations |
 | 5 | Over 75% reduction with ML-assisted continuous tuning |
+
+Evidence: ___________________________
 
 ### Gap Analysis
 
@@ -226,20 +265,28 @@ Rate the maturity of your detection coverage gap analysis.
 | 4 | Comprehensive analysis integrated with threat modeling and risk assessment; gaps drive the detection roadmap (continuous tracking; integrated into roadmap) |
 | 5 | Automated gap analysis using coverage mapping tools; real-time dashboards showing detection coverage (automated continuous analysis) |
 
+Evidence: ___________________________
+
 **T2-Q4** *(Gap Analysis)* *(Yes/No)*
 Do you maintain a documented, prioritized list of detection coverage gaps that is updated at least quarterly?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 **T2-Q5** *(Gap Analysis)* *(Yes/No)*
 Are detection coverage gaps formally communicated to stakeholders (leadership, IR, threat intel) at least quarterly?
 
 [ ] Yes  [ ] No
 
+Evidence: ___________________________
+
 **T2-Q7** *(Gap Analysis)* *(Yes/No)*
 Does your team maintain a formal detection coverage map that links critical assets and priority threat actors to specific detection rules?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 ### Internal Testing
 
@@ -253,6 +300,8 @@ Rate the maturity of your internal detection testing and validation program.
 | 3 | Regular testing program with attack emulation (e.g., Atomic Red Team, Caldera) covering major detection categories; results documented (40-70% emulation coverage; at least quarterly) |
 | 4 | Comprehensive testing with automated attack emulation, purple team exercises, and continuous validation (70-90% automated emulation coverage) |
 | 5 | Continuous automated testing with full emulation coverage and automated regression testing on every rule change (>90% automated coverage) |
+
+Evidence: ___________________________
 
 ---
 
@@ -271,6 +320,8 @@ Rate your team's ability to identify and remediate false negatives (missed detec
 | 4 | Comprehensive FN management with automated detection validation, coverage testing, and rapid remediation (90-100% trigger rate; >50% FN reduction) |
 | 5 | Continuous automated FN detection using real-time validation against live threat samples (near-zero FN rate; >75% FN reduction) |
 
+Evidence: ___________________________
+
 **T3-Q2** *(False Negative Triage)* *(Scale 1-5)*
 What is your detection trigger rate when tested samples or emulations are run against your rules?
 
@@ -281,6 +332,8 @@ What is your detection trigger rate when tested samples or emulations are run ag
 | 3 | 50-70% trigger rate with root cause analysis on misses |
 | 4 | 70-90% trigger rate with automated validation and remediation |
 | 5 | Over 90% trigger rate with continuous regression testing |
+
+Evidence: ___________________________
 
 ### External Validation
 
@@ -295,6 +348,8 @@ Rate the maturity of your external validation program for detection capabilities
 | 4 | Multiple external validation exercises annually including red team, purple team, and breach simulation; systematic feedback integration (multiple per year; >70% of findings remediated within 30 days) |
 | 5 | Continuous BAS (breach and attack simulation) tools and regular adversary emulation exercises with real-time feedback loops |
 
+Evidence: ___________________________
+
 ### Advanced TTP Coverage
 
 **T3-Q4** *(Advanced TTP Coverage)* *(Scale 1-5)*
@@ -308,6 +363,8 @@ Rate your detection coverage of advanced TTPs beyond basic signatures and IOCs.
 | 4 | Comprehensive coverage of 5+ categories including sophisticated evasion, novel attack chains, and emerging threats (e.g., defense evasion/log tampering, lateral movement via legitimate tools, supply chain vectors) |
 | 5 | Continuous proactive coverage using AI/ML for anomaly detection and automated response to emerging TTPs; real-time advanced TTP detection |
 
+Evidence: ___________________________
+
 **T3-Q5** *(Advanced TTP Coverage)* *(Scale 1-5)*
 How many of these advanced TTP categories does your team have behavioral detections for: (1) LOLBins/living-off-the-land, (2) fileless malware, (3) credential dumping evasion, (4) defense evasion/log tampering, (5) lateral movement via legitimate tools?
 
@@ -318,6 +375,8 @@ How many of these advanced TTP categories does your team have behavioral detecti
 | 3 | 2-3 of these categories |
 | 4 | 4-5 of these categories |
 | 5 | All 5 plus additional categories (e.g., supply chain attacks, AI-assisted threats) |
+
+Evidence: ___________________________
 
 ---
 
@@ -336,15 +395,21 @@ Rate the maturity of your threat hunting program.
 | 4 | Comprehensive daily hunting program with advanced analytics (e.g., statistical baselining, graph analysis); systematic integration of all findings (daily hunts; >90% findings integrated) |
 | 5 | Automated real-time hunting augmented by AI/ML; hunting outputs automatically generate detection rule candidates |
 
+Evidence: ___________________________
+
 **T4-Q2** *(Threat Hunting)* *(Yes/No)*
 Are your threat hunts driven by documented hypotheses (from intel, incidents, or gap analysis) rather than ad hoc exploration?
 
 [ ] Yes  [ ] No
 
+Evidence: ___________________________
+
 **T4-Q3** *(Threat Hunting)* *(Yes/No)*
 Is there a defined process to convert threat hunting findings into production detection rules?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 ### Automation and Continuous Improvement
 
@@ -359,6 +424,8 @@ What percentage of your detection engineering tasks are automated?
 | 4 | Advanced automation covering most of the lifecycle; AI/LLM tools used for rule optimization, duplication detection, and analysis (70-80% automated) |
 | 5 | Full AI/LLM integration throughout the detection lifecycle; automated rule generation, tuning, and retirement (>90% automated; 40%+ FP reduction via AI) |
 
+Evidence: ___________________________
+
 **T4-Q5** *(Automation and Continuous Improvement)* *(Scale 1-5)*
 How many detection lifecycle stages have AI/LLM or automation integration? Stages: (1) rule authoring, (2) testing, (3) tuning, (4) deployment, (5) monitoring, (6) retirement.
 
@@ -370,10 +437,14 @@ How many detection lifecycle stages have AI/LLM or automation integration? Stage
 | 4 | 4-5 stages automated or AI-assisted |
 | 5 | All 6 stages with AI/LLM integration throughout |
 
+Evidence: ___________________________
+
 **T4-Q6** *(Automation and Continuous Improvement)* *(Yes/No)*
 Does your team conduct regular retrospectives on detection failures (missed detections, late detections, false negatives) to improve the detection process?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 ---
 
@@ -392,6 +463,8 @@ Rate the maturity of your detection engineering team structure.
 | 4 | Established multi-person team with subject matter experts across key domains (host, network, cloud, application); defined career ladder |
 | 5 | Mature team with deep specialization, mentorship programs, and influence on organizational security strategy |
 
+Evidence: ___________________________
+
 ### Skills Development
 
 **EP-Q2** *(Skills Development)* *(Scale 1-5)*
@@ -404,6 +477,8 @@ Rate the maturity of your detection engineering skills development program.
 | 3 | Written training plan with scheduled activities; regular knowledge sharing sessions (e.g., weekly/biweekly); defined skill requirements for roles |
 | 4 | Comprehensive program covering advanced topics; cross-training with IR, threat intel, and engineering teams; certifications supported and funded |
 | 5 | Continuous learning culture with community contribution (blog posts, conference talks), internal research programs, and mentorship |
+
+Evidence: ___________________________
 
 ### Leadership Commitment
 
@@ -418,20 +493,28 @@ Rate the level of executive sponsorship and leadership commitment to detection e
 | 4 | Strong executive support; detection engineering metrics included in regular executive reporting; function influences security investment decisions |
 | 5 | Detection engineering is a strategic priority; board-level visibility; leadership actively champions the function across the organization |
 
+Evidence: ___________________________
+
 **EP-Q4** *(Leadership Commitment)* *(Yes/No)*
 Does your detection engineering team present metrics or results to executive leadership at least quarterly?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 **EP-Q5** *(Leadership Commitment)* *(Yes/No)*
 Has executive leadership made investment or staffing decisions based on detection engineering metrics or recommendations in the past year?
 
 [ ] Yes  [ ] No
 
+Evidence: ___________________________
+
 **EP-Q6** *(Team Structure)* *(Yes/No)*
 Are designated owners assigned for key detection engineering activities (e.g., threat landscape monitoring, rule testing and release, detection lifecycle management)?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 ---
 
@@ -450,6 +533,8 @@ Rate the maturity of your detection lifecycle workflow (from request through ret
 | 4 | Lifecycle enforced through tooling and automation; SLAs defined for each stage; cycle time and throughput metrics tracked |
 | 5 | Optimized lifecycle with automated stage transitions, predictive analytics for rule retirement, and continuous process improvement |
 
+Evidence: ___________________________
+
 ### Metrics and KPIs
 
 **EG-Q2** *(Metrics Tracking)* *(Scale 1-5)*
@@ -463,6 +548,8 @@ Rate the maturity of your detection engineering metrics program.
 | 4 | 5+ KPIs with automated collection, trending, and correlation; metrics actively drive decision-making and resource allocation |
 | 5 | Advanced analytics with predictive metrics, industry benchmarking, and data-driven continuous optimization |
 
+Evidence: ___________________________
+
 **EG-Q3** *(Metrics Tracking)* *(Scale 1-5)*
 How many of these KPI categories does your team actively track: (1) detection coverage (ATT&CK %), (2) detection quality (FP/FN rates), (3) detection velocity (time to deploy new rules), (4) rule health (stale/broken rules), (5) analyst impact (alert-to-incident ratio)?
 
@@ -473,6 +560,8 @@ How many of these KPI categories does your team actively track: (1) detection co
 | 3 | 2-3 categories tracked with regular reporting |
 | 4 | 4-5 categories tracked with automated collection and dashboards |
 | 5 | All 5 categories plus additional metrics with trend analysis and benchmarking |
+
+Evidence: ___________________________
 
 ### Cross-Team Collaboration
 
@@ -487,10 +576,14 @@ Rate the maturity of collaboration between detection engineering and other secur
 | 4 | Deep integration with joint planning sessions at least quarterly, shared OKRs/objectives, and integrated workflows (e.g., threat intel feeds directly inform detection priorities) |
 | 5 | Seamless cross-functional collaboration with automated information sharing, shared metrics dashboards, and embedded team members |
 
+Evidence: ___________________________
+
 **EG-Q5** *(Detection Lifecycle)* *(Yes/No)*
 Is there a defined process to incorporate lessons learned from security incidents into detection rule updates?
 
 [ ] Yes  [ ] No
+
+Evidence: ___________________________
 
 ---
 

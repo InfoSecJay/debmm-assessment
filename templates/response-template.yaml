@@ -4,14 +4,13 @@
 # For checklist questions: answer true or false
 # For scale questions: answer 1-5
 #
-# The "confidence" field is optional but recommended for audits.
+# The "confidence" field is optional.
 
 metadata:
   organization: ""
   assessor_name: ""
   assessor_role: ""
   date: ""
-  assessment_type: self  # "self" or "audit"
   notes: ""
 
 responses:

@@ -27,7 +27,6 @@ def generate_report(results: dict, llm_analysis: dict | None = None) -> str:
     org = meta.get("organization", "Unknown Organization")
     assessor = meta.get("assessor_name", "Unknown")
     date = meta.get("date", datetime.now().strftime("%Y-%m-%d"))
-    atype = meta.get("assessment_type", "self").title()
     overall = results["overall_score"]
     tier = results["tier_determination"]
 
@@ -41,7 +40,6 @@ def generate_report(results: dict, llm_analysis: dict | None = None) -> str:
     lines.append(f"| **Organization** | {org} |")
     lines.append(f"| **Assessor** | {assessor} |")
     lines.append(f"| **Date** | {date} |")
-    lines.append(f"| **Assessment Type** | {atype} |")
     lines.append(f"| **Overall Score** | **{overall}/5.0** |")
     lines.append(f"| **Achieved Tier** | **{tier['tier_name']}** |")
     lines.append("")

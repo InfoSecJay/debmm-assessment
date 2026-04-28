@@ -58,7 +58,6 @@ def extract_report_data(xlsx_path: Path) -> dict:
         date_str = date_val.strftime("%Y-%m-%d")
     else:
         date_str = _to_str(date_val, "N/A")
-    assess_type = _to_str(summary.get("Assessment Type", "Self-Assessment"))
 
     overall_raw = summary.get("Overall Score")
     overall_score = _to_float(overall_raw)
@@ -119,7 +118,6 @@ def extract_report_data(xlsx_path: Path) -> dict:
         "org": org,
         "assessor": assessor,
         "date": date_str,
-        "type": assess_type,
         "overallScore": overall_score if overall_score is not None else 0.0,
         "achievedTier": achieved_tier,
         "completion": completion,

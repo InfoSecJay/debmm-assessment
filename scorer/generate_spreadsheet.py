@@ -10,7 +10,6 @@ Generates an all-in-one Excel spreadsheet with:
 
 Usage:
     python generate_spreadsheet.py [--output debmm-assessment.xlsx]
-    python generate_spreadsheet.py --mode audit --output audit-assessment.xlsx
 """
 
 import argparse
@@ -208,7 +207,7 @@ def status_formula(score_ref):
 # ── Tab 1: Instructions ──────────────────────────────────────────────────────
 
 
-def build_instructions_tab(wb: Workbook, mode: str):
+def build_instructions_tab(wb: Workbook):
     ws = wb.active
     ws.title = "Instructions"
     ws.sheet_properties.tabColor = NAVY
@@ -230,9 +229,8 @@ def build_instructions_tab(wb: Workbook, mode: str):
     # Subtitle row
     ws.merge_cells("A2:D2")
     ws.row_dimensions[2].height = 26
-    mode_label = "Self-Assessment" if mode == "self" else "Audit Assessment"
     c = ws["A2"]
-    c.value = f"  Detection Engineering Behavior Maturity Model \u2014 {mode_label}"
+    c.value = "  Detection Engineering Behavior Maturity Model"
     style_cell(c, FONT_SUBTITLE, FILL_NAVY, Alignment(horizontal="left", vertical="center"))
     for col in "ABCD":
         ws[f"{col}2"].fill = FILL_NAVY
@@ -372,21 +370,15 @@ def build_instructions_tab(wb: Workbook, mode: str):
 # ── Tab 2: Assessment ─────────────────────────────────────────────────────────
 
 
-def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: str):
+def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict):
     ws = wb.create_sheet("Assessment")
     ws.sheet_properties.tabColor = MED_BLUE
 
-    # Column layout — gutter | ID | Criterion | Question | Answer | Score | [Evidence] | gutter
-    if mode == "audit":
-        col_widths = {"A": 2, "B": 7, "C": 26, "D": 78, "E": 14, "F": 10, "G": 45, "H": 2}
-        last_col = "H"
-        last_col_num = 8
-        evidence_col = 7  # Column G
-    else:
-        col_widths = {"A": 2, "B": 7, "C": 26, "D": 78, "E": 14, "F": 10, "G": 2}
-        last_col = "G"
-        last_col_num = 7
-        evidence_col = None
+    # Column layout — gutter | ID | Criterion | Question | Answer | Score | Evidence | gutter
+    col_widths = {"A": 2, "B": 7, "C": 26, "D": 78, "E": 14, "F": 10, "G": 45, "H": 2}
+    last_col = "H"
+    last_col_num = 8
+    evidence_col = 7  # Column G
     for col, width in col_widths.items():
         ws.column_dimensions[col].width = width
 
@@ -410,7 +402,7 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
 
     # ── Metadata section ──────────────────────────────────────────────
     ws.row_dimensions[3].height = 8  # Spacer
-    labels = ["Organization:", "Assessor Name:", "Assessor Role:", "Date:", "Assessment Type:"]
+    labels = ["Organization:", "Assessor Name:", "Assessor Role:", "Date:"]
     for i, label in enumerate(labels):
         r = 4 + i
         ws.cell(row=r, column=3, value=label)
@@ -419,16 +411,6 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
         style_cell(ws.cell(row=r, column=4), FONT_BODY, FILL_ANSWER, ALIGN_LEFT, ANSWER_BORDER)
         ws.cell(row=r, column=5).fill = FILL_ANSWER
         ws.cell(row=r, column=5).border = ANSWER_BORDER
-
-    # Pre-fill assessment type
-    ws.cell(row=8, column=4, value="Self-Assessment" if mode == "self" else "Audit")
-
-    # Type dropdown
-    dv_type = DataValidation(type="list", formula1='"Self-Assessment,Audit"', allow_blank=False)
-    dv_type.error = "Please select Self-Assessment or Audit"
-    dv_type.errorTitle = "Invalid Entry"
-    ws.add_data_validation(dv_type)
-    dv_type.add(ws.cell(row=8, column=4))
 
     # ── Data validations ──────────────────────────────────────────────
     dv_yesno = DataValidation(type="list", formula1='"Yes,No"', allow_blank=True)
@@ -472,31 +454,27 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
 
     # ── DEBMM Core Assessment context header ──────────────────────────
     row = 10
-    ws.merge_cells(f"B{row}:F{row}")
+    ws.merge_cells(f"B{row}:G{row}")
     ws.cell(row=row, column=2, value="DEBMM CORE ASSESSMENT \u2014 Tiers 0\u20144")
     style_cell(ws.cell(row=row, column=2), FONT_SECTION, FILL_LIGHT_BLUE, ALIGN_LEFT, BLUE_ACCENT_LEFT)
-    for c in range(3, 7):
+    for c in range(3, 8):
         ws.cell(row=row, column=c).fill = FILL_LIGHT_BLUE
     ws.row_dimensions[row].height = 32
     row += 1
 
-    ws.merge_cells(f"B{row}:F{row}")
+    ws.merge_cells(f"B{row}:G{row}")
     ws.cell(row=row, column=2,
             value="Rate your team across the 5 progressive DEBMM tiers. "
                   "Your achieved tier is the highest where all criteria score \u2265 3.0.")
     style_cell(ws.cell(row=row, column=2), FONT_CONTEXT, FILL_LIGHT_BLUE, ALIGN_LEFT)
-    for c in range(3, 7):
+    for c in range(3, 8):
         ws.cell(row=row, column=c).fill = FILL_LIGHT_BLUE
     ws.row_dimensions[row].height = 22
     row += 1
 
     # ── Column headers ────────────────────────────────────────────────
-    if mode == "audit":
-        headers = ["ID", "Criterion", "Question", "Answer", "Score", "Evidence / Notes"]
-        hdr_cols = list(range(2, 8))
-    else:
-        headers = ["ID", "Criterion", "Question", "Answer", "Score"]
-        hdr_cols = list(range(2, 7))
+    headers = ["ID", "Criterion", "Question", "Answer", "Score", "Evidence / Notes"]
+    hdr_cols = list(range(2, 8))
 
     header_row = row
     for col_idx, header in zip(hdr_cols, headers):
@@ -508,7 +486,6 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
     # ── Question rows ─────────────────────────────────────────────────
     current_tier = None
     question_rows = []
-    q_key = "question" if mode == "self" else "question_audit"
     enrichment_headers_inserted = False
     prev_criterion = None
     q_idx_in_tier = 0  # For alternating rows
@@ -529,22 +506,22 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
             row += 1
 
             # Enrichment context header
-            ws.merge_cells(f"B{row}:F{row}")
+            ws.merge_cells(f"B{row}:G{row}")
             ws.cell(row=row, column=2,
                     value="SUPPLEMENTARY DIMENSIONS \u2014 Organizational Readiness")
             style_cell(ws.cell(row=row, column=2), FONT_SECTION_TEAL, FILL_LIGHT_TEAL,
                        ALIGN_LEFT, TEAL_ACCENT_LEFT)
-            for c in range(3, 7):
+            for c in range(3, 8):
                 ws.cell(row=row, column=c).fill = FILL_LIGHT_TEAL
             ws.row_dimensions[row].height = 32
             row += 1
 
-            ws.merge_cells(f"B{row}:F{row}")
+            ws.merge_cells(f"B{row}:G{row}")
             ws.cell(row=row, column=2,
                     value="These dimensions from detectionengineering.io assess people and process factors. "
                           "They contribute to the overall score but do not affect DEBMM tier determination.")
             style_cell(ws.cell(row=row, column=2), FONT_CONTEXT, FILL_LIGHT_TEAL, ALIGN_LEFT)
-            for c in range(3, 7):
+            for c in range(3, 8):
                 ws.cell(row=row, column=c).fill = FILL_LIGHT_TEAL
             ws.row_dimensions[row].height = 22
             row += 1
@@ -565,14 +542,12 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
             banner_fill = FILL_TEAL if is_enrichment(q_tier) else FILL_NAVY
             banner_text = tier_labels.get(q_tier, str(q_tier).upper())
 
-            ws.merge_cells(f"B{row}:F{row}")
+            ws.merge_cells(f"B{row}:G{row}")
             ws.cell(row=row, column=2, value=f"  {banner_text}")
             style_cell(ws.cell(row=row, column=2), FONT_TIER_BANNER, banner_fill,
                        Alignment(horizontal="left", vertical="center"))
-            for c in range(2, 7):
+            for c in range(2, 8):
                 ws.cell(row=row, column=c).fill = banner_fill
-            if evidence_col:
-                ws.cell(row=row, column=evidence_col).fill = banner_fill
             ws.row_dimensions[row].height = 34
             row += 1
 
@@ -582,10 +557,10 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
                 desc = tier_descs.get(q_tier, "")
             if desc:
                 sub_fill = FILL_LIGHT_TEAL if is_enrichment(q_tier) else FILL_LIGHT_BLUE
-                ws.merge_cells(f"B{row}:F{row}")
+                ws.merge_cells(f"B{row}:G{row}")
                 ws.cell(row=row, column=2, value=desc)
                 style_cell(ws.cell(row=row, column=2), FONT_SMALL_ITALIC, sub_fill, ALIGN_LEFT)
-                for c in range(3, 7):
+                for c in range(3, 8):
                     ws.cell(row=row, column=c).fill = sub_fill
                 ws.row_dimensions[row].height = 20
                 row += 1
@@ -595,7 +570,7 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
         qtype = q["type"]
         criterion_id = q["criterion"]
         criterion = crit_names.get(criterion_id, criterion_id)
-        question_text = q.get(q_key, q["question"])
+        question_text = q["question"]
         yes_value = q.get("scoring", {}).get("yes_value", 3) if qtype == "checklist" else None
 
         # Alternating row tint
@@ -645,10 +620,9 @@ def build_assessment_tab(wb: Workbook, questionnaire: dict, rubric: dict, mode: 
         style_cell(score_cell, FONT_BODY_BOLD, row_fill, ALIGN_CENTER, HAIRLINE_BOTTOM)
         score_cell.number_format = "0.0"
 
-        # Column G — Evidence (audit only)
-        if evidence_col:
-            evidence_cell = ws.cell(row=row, column=evidence_col)
-            style_cell(evidence_cell, FONT_BODY, FILL_ANSWER, ALIGN_LEFT_TOP, ANSWER_BORDER)
+        # Column G — Evidence / Notes
+        evidence_cell = ws.cell(row=row, column=evidence_col)
+        style_cell(evidence_cell, FONT_BODY, FILL_ANSWER, ALIGN_LEFT_TOP, ANSWER_BORDER)
 
         # Row height
         ws.row_dimensions[row].height = 115 if qtype == "scale" else 35
@@ -1410,7 +1384,6 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
         ("Organization", "=Assessment!D4"),
         ("Assessor", "=Assessment!D5"),
         ("Date", "=Assessment!D7"),
-        ("Assessment Type", "=Assessment!D8"),
     ]
     for label, formula in summary_items:
         ws.cell(row=row, column=1, value=label)
@@ -1641,14 +1614,13 @@ def generate_spreadsheet(
     output_path: Path,
     rubric_path: Path = DEFAULT_RUBRIC,
     questionnaire_path: Path = DEFAULT_QUESTIONNAIRE,
-    mode: str = "self",
 ):
     rubric = load_yaml(rubric_path)
     questionnaire = load_yaml(questionnaire_path)
 
     wb = Workbook()
-    build_instructions_tab(wb, mode)
-    _, question_rows, header_row = build_assessment_tab(wb, questionnaire, rubric, mode)
+    build_instructions_tab(wb)
+    _, question_rows, header_row = build_assessment_tab(wb, questionnaire, rubric)
     _, core_tier_row_list, enrich_row_list = build_dashboard_tab(
         wb, rubric, questionnaire, question_rows, header_row)
     build_core_chart_tab(wb, core_tier_row_list)
@@ -1667,15 +1639,11 @@ def main():
         default=PROJECT_ROOT / "templates" / "debmm-assessment.xlsx",
         help="Output Excel file path (default: templates/debmm-assessment.xlsx)",
     )
-    parser.add_argument(
-        "--mode", choices=["self", "audit"], default="self",
-        help="Assessment mode: self-assessment or audit (default: self)",
-    )
     parser.add_argument("--rubric", type=Path, default=DEFAULT_RUBRIC)
     parser.add_argument("--questionnaire", type=Path, default=DEFAULT_QUESTIONNAIRE)
 
     args = parser.parse_args()
-    output = generate_spreadsheet(args.output, args.rubric, args.questionnaire, args.mode)
+    output = generate_spreadsheet(args.output, args.rubric, args.questionnaire)
     print(f"Spreadsheet generated: {output}")
 
 

@@ -80,12 +80,12 @@ Note: Enrichment categories (People & Organization, Process & Governance) contri
 
 ### 1. Manual (Spreadsheet/Print)
 
-Use the markdown questionnaires (`questionnaire-self.md` or `questionnaire-audit.md`):
+Use the markdown questionnaire (`questionnaire/questionnaire.md`):
 
-1. Print or fill in the markdown questionnaire
+1. Print or fill in the markdown questionnaire (capture notes on the Evidence line under each question)
 2. Tally checklist items and scale scores manually
 3. Calculate criterion averages and tier scores using the formulas above
-4. Review text answers qualitatively
+4. Review qualitatively against the rubric
 
 Best for: Quick assessments, workshops, teams without Python/tooling.
 
@@ -153,7 +153,7 @@ Best for: Comprehensive assessments where text answers contain important context
 
 ## Limitations
 
-- Self-assessment scores may reflect aspiration rather than reality; audit-style assessments are more objective
+- Self-reported scores may reflect aspiration rather than reality. Filling out the Evidence column for each answer (required for audits, optional for self-assessments) is the best mitigation
 - Checklist yes/no scoring is coarse; a "yes" for peer review might mean "sometimes" vs. "always"
 - Text scoring by LLM is non-deterministic and should be validated by a human
 - Weights are equal by default and should be tuned to the organization's context

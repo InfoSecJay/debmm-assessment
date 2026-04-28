@@ -56,14 +56,10 @@ npm install
 ### 3. Generate the Assessment Spreadsheet
 
 ```bash
-# Self-assessment mode (default)
 python scorer/generate_spreadsheet.py
-
-# Audit mode (includes evidence prompts)
-python scorer/generate_spreadsheet.py --mode audit -o templates/debmm-assessment-audit.xlsx
 ```
 
-This creates the spreadsheet in `templates/`. You only need to regenerate it if you modify the rubric or questionnaire YAML files.
+This creates `templates/debmm-assessment.xlsx`. The same template works for self-assessments and external audits — every question has an Evidence / Notes column for supporting context (required for audits, optional for self-assessments). You only need to regenerate the spreadsheet if you modify the rubric or questionnaire YAML files.
 
 ## Monthly Workflow
 
@@ -257,7 +253,7 @@ python scorer/llm_scorer.py my-assessment.yaml --report my-report.md
 
 For pen-and-paper or workshop-style assessments:
 
-1. Open [`questionnaire/questionnaire-self.md`](questionnaire/questionnaire-self.md) or [`questionnaire/questionnaire-audit.md`](questionnaire/questionnaire-audit.md)
+1. Open [`questionnaire/questionnaire.md`](questionnaire/questionnaire.md)
 2. Score using [`rubric/rubric.md`](rubric/rubric.md)
 3. Tally scores using the [methodology](docs/methodology.md)
 
@@ -266,12 +262,11 @@ For pen-and-paper or workshop-style assessments:
 ### `scorer/generate_spreadsheet.py`
 
 ```
-python scorer/generate_spreadsheet.py [--mode {self,audit}] [-o OUTPUT]
+python scorer/generate_spreadsheet.py [-o OUTPUT]
 ```
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--mode` | `self` | Assessment mode: `self` or `audit` (adds evidence prompts) |
 | `-o` | `templates/debmm-assessment.xlsx` | Output path for generated spreadsheet |
 
 ### `scorer/extract_data.py`
@@ -322,9 +317,8 @@ debmm-assessment/
 │   ├── rubric.yaml                       # Machine-readable rubric (24 criteria, 5 levels each)
 │   └── rubric.md                         # Human-readable rubric with scoring tables
 ├── questionnaire/
-│   ├── questionnaire.yaml                # Master questionnaire (41 questions, structured)
-│   ├── questionnaire-self.md             # Printable self-assessment version
-│   └── questionnaire-audit.md            # Printable audit version (with evidence prompts)
+│   ├── questionnaire.yaml                # Master questionnaire (46 questions, structured)
+│   └── questionnaire.md                  # Printable questionnaire (works for self and audit)
 ├── scorer/
 │   ├── requirements.txt                  # Python dependencies
 │   ├── generate_spreadsheet.py           # Generates the all-in-one Excel assessment
@@ -335,8 +329,7 @@ debmm-assessment/
 │   ├── report.py                         # Markdown report generator
 │   └── llm_scorer.py                     # LLM-assisted scorer (Anthropic/OpenAI)
 ├── templates/
-│   ├── debmm-assessment.xlsx             # Generated self-assessment spreadsheet
-│   ├── debmm-assessment-audit.xlsx       # Generated audit spreadsheet
+│   ├── debmm-assessment.xlsx             # Generated assessment spreadsheet (with Evidence column)
 │   ├── response-template.yaml            # Blank YAML response template
 │   └── example-response.yaml             # Example: mid-maturity organization
 └── docs/
@@ -354,12 +347,12 @@ See [docs/methodology.md](docs/methodology.md) for the full scoring methodology.
 
 ## Self-Assessment vs. Audit
 
-| Mode | Use When | Command |
-|------|----------|---------|
-| **Self-Assessment** | Manager evaluating their own team | `python scorer/generate_spreadsheet.py` |
-| **Audit** | Evaluating another team with evidence collection | `python scorer/generate_spreadsheet.py --mode audit -o templates/debmm-assessment-audit.xlsx` |
+The same spreadsheet works for both. Every question has an **Evidence / Notes** column:
 
-The audit version includes evidence-request prompts for each question to support objective evaluation.
+- **Self-assessment** — leave Evidence blank or use it to capture supporting context as you go.
+- **External audit** — fill Evidence for every question to document the basis for each rating (logs, screenshots, ticket links, interview notes).
+
+There is no separate audit template or `--mode` flag — the workflow is identical, only the rigor of the Evidence column changes.
 
 ## Customization
 
