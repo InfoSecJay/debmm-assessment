@@ -13,6 +13,12 @@ A toolkit for SOC managers to assess detection engineering maturity, based on [E
   </tr>
 </table>
 
+## Why I Built This
+
+Maturity models tend to live as PDFs — useful as references, hard to actually run on a team. I wanted to use Elastic's DEBMM on a real SOC rather than just read it, so I built this: a dropdown-driven assessment that completes in 30 minutes, automated tier scoring that enforces the model's progressive logic (one prerequisite criterion below Defined caps the achieved tier), monthly history tracking, and an exec-ready PowerPoint output.
+
+The organizational enrichment from [detectionengineering.io](https://detectionengineering.io/) is deliberate — DEBMM focuses on detection behavior, but team structure, training, and governance shape what behaviors are even possible.
+
 ## What It Is
 
 A structured assessment covering **24 criteria** across **7 categories** with **46 dropdown questions** (no free-text required):
@@ -120,11 +126,6 @@ python scorer/score.py my-assessment.yaml [--json | --report report.md]
 
 # Score directly from a filled-out spreadsheet
 python scorer/score.py --from-xlsx my-assessment.xlsx --report report.md
-
-# LLM-assisted scoring — flags answer inconsistencies and adds AI-generated improvement recommendations
-pip install anthropic    # or: openai
-export ANTHROPIC_API_KEY=...
-python scorer/llm_scorer.py my-assessment.yaml --report report.md
 ```
 
 For pen-and-paper or workshop-style assessments, see [`questionnaire/questionnaire.md`](questionnaire/questionnaire.md) — it's printable and includes an Evidence line under every question.
@@ -149,8 +150,7 @@ debmm-assessment/
 │   ├── generate_report.js                # 4-slide point-in-time PowerPoint
 │   ├── generate_trend.js                 # 3-slide trend PowerPoint
 │   ├── score.py                          # CLI scorer (YAML or Excel input)
-│   ├── report.py                         # Markdown report generator
-│   └── llm_scorer.py                     # LLM-assisted scorer (Anthropic / OpenAI)
+│   └── report.py                         # Markdown report generator
 ├── templates/
 │   ├── debmm-assessment.xlsx             # Generated spreadsheet (with Evidence column)
 │   ├── response-template.yaml            # Blank YAML response template
