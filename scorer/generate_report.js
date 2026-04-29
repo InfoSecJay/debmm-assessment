@@ -293,11 +293,10 @@ sExec.addText("Executive Summary", {
 });
 
 // ── Tier-specific narrative banner ──
-// Same per-tier paragraph the Excel Results Dashboard shows, so the deck and
-// the workbook tell the same story. Names what's working at the achieved tier
-// AND what specifically to focus on to unlock the next tier.
-const narrativeY = 0.78;
-const narrativeH = 0.92;
+// Same per-tier paragraph the Excel Results Dashboard shows. Compact font so
+// the banner stays under 0.75" and leaves room for the full-height cards below.
+const narrativeY = 0.75;
+const narrativeH = 0.78;
 sExec.addShape(pres.shapes.RECTANGLE, {
   x: 0.6,
   y: narrativeY,
@@ -314,10 +313,10 @@ sExec.addShape(pres.shapes.RECTANGLE, {
 });
 sExec.addText(exec.narrative, {
   x: 0.85,
-  y: narrativeY + 0.05,
+  y: narrativeY + 0.06,
   w: 8.45,
-  h: narrativeH - 0.10,
-  fontSize: 11,
+  h: narrativeH - 0.12,
+  fontSize: 10,
   fontFace: "Calibri",
   color: C.textPrimary,
   valign: "top",
@@ -325,8 +324,8 @@ sExec.addText(exec.narrative, {
 });
 
 // ── Three-column hero: Maturity | Coverage | Next tier ──
-const heroY = 1.85;
-const heroH = 1.65;
+const heroY = 1.65;
+const heroH = 1.85;
 const heroLeftX = 0.6;
 const heroColW = 2.83;
 const heroGap = 0.15;
@@ -462,8 +461,8 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
     : exec.tierNum === 4 ? "All tiers achieved" : "Reach Foundation";
   // Headline: target tier name
   sExec.addText(headline, {
-    x: cx, y: cy, w: cw, h: 0.42,
-    fontSize: 16, fontFace: "Calibri", bold: true, color: C.cyan, margin: 0,
+    x: cx, y: cy, w: cw, h: 0.5,
+    fontSize: 18, fontFace: "Calibri", bold: true, color: C.cyan, margin: 0,
   });
 
   // Build the unlock summary sentence
@@ -493,8 +492,8 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
   // Visual: numeric badge + caption row (parallels the stat layout in the other cards)
   if (badgeNum) {
     sExec.addText(badgeNum, {
-      x: cx, y: cy + 0.50, w: 0.7, h: 0.45,
-      fontSize: 28, fontFace: "Calibri", bold: true, color: badgeColor,
+      x: cx, y: cy + 0.55, w: 0.7, h: 0.55,
+      fontSize: 32, fontFace: "Calibri", bold: true, color: badgeColor,
       align: "left", valign: "middle", margin: 0,
     });
     sExec.addText(
@@ -502,7 +501,7 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
         ? `${exec.nextTierName || "Foundation"} criterion below threshold`
         : `${exec.nextTierName || "Foundation"} criteria below threshold`,
       {
-        x: cx + 0.7, y: cy + 0.50, w: cw - 0.7, h: 0.45,
+        x: cx + 0.7, y: cy + 0.55, w: cw - 0.7, h: 0.55,
         fontSize: 10, fontFace: "Calibri", italic: true, color: C.textSecondary,
         valign: "middle", margin: 0,
       }
@@ -511,17 +510,16 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
 
   // Body explainer at the bottom
   sExec.addText(unlockText, {
-    x: cx, y: cy + 0.98, w: cw, h: 0.28,
+    x: cx, y: cy + 1.18, w: cw, h: 0.30,
     fontSize: 10, fontFace: "Calibri", color: C.textPrimary, margin: 0,
   });
 });
 
 // ── Two-column lower section: Focus areas (left) | Current strengths (right) ──
-// Sized to fit within the remaining slide height after the rich tier-narrative
-// banner pushes the 3-card hero down. 5 items at 0.35 per row keeps the deck
-// to a single slide footprint without truncating the bottom.
-const focusY = 3.55;
-const colItemH = 0.35;
+// Cards end at y=3.50; focus header (0.24) + 5 items at 0.34 fits in the
+// remaining 2.125" of slide height (down to 5.625) without overflowing.
+const focusY = 3.60;
+const colItemH = 0.34;
 const colMaxItems = 5;
 
 function drawListItem(slide, item, iy, colX, colW, opts) {
