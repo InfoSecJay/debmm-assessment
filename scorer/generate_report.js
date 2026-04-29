@@ -215,36 +215,41 @@ function buildExecSummary(d) {
     .filter((c) => c.score < 3.0 && !nextBlockers.includes(c))
     .sort((a, b) => a.score - b.score);
 
-  let narrative;
-  let action;
+  // Per-tier narrative — same text the Excel Results Dashboard uses, so the
+  // deck and the workbook tell the same story. Each paragraph names what is
+  // working at the achieved tier AND what specifically to focus on to unlock
+  // the next tier.
+  const tierExplanations = {
+    "Below Foundation":
+      "Your organization has not yet achieved Tier 0 (Foundation). One or more foundational criteria — such as structured rule development, rule maintenance, roadmap documentation, or threat modeling — score below the Defined level (3.0). Focus on establishing basic, repeatable processes in these areas before advancing to higher tiers.",
+    "Tier 0: Foundation":
+      "Your organization has achieved Tier 0 (Foundation). All foundational criteria meet the Defined level — you have documented processes for rule development, maintenance, roadmaps, and threat modeling. To reach Tier 1, ensure baseline rules, telemetry quality, threat landscape reviews, and release testing also reach the Defined level.",
+    "Tier 1: Basic":
+      "Your organization has achieved Tier 1 (Basic). You have solid foundations and basic detection capabilities in place, including baseline rules, telemetry coverage, and release testing at the Defined level. To advance to Tier 2, focus on systematic false positive reduction, formal gap analysis, and internal testing and validation.",
+    "Tier 2: Intermediate":
+      "Your organization has achieved Tier 2 (Intermediate). Your detection program has mature processes for rule development, telemetry management, false positive reduction, and gap analysis. To advance to Tier 3, invest in false negative triage, external validation (e.g., purple team exercises), and coverage of advanced TTPs.",
+    "Tier 3: Advanced":
+      "Your organization has achieved Tier 3 (Advanced). You have a highly capable detection program with systematic FN reduction, external validation, and behavioral detection of advanced TTPs. To reach Tier 4, develop proactive threat hunting capabilities, adopt hypothesis-driven hunting workflows, and integrate automation and AI across the detection lifecycle.",
+    "Tier 4: Expert":
+      "Your organization has achieved Tier 4 (Expert) — the highest DEBMM tier. Your detection engineering program is mature across all dimensions: proactive threat hunting, automation of key lifecycle stages, and continuous improvement driven by data. Focus on sustaining this level and contributing to the broader detection engineering community.",
+  };
+  const narrative = tierExplanations[achieved] || tierExplanations["Below Foundation"];
 
+  // Short action sentence — kept for the next-tier card
+  let action;
   if (tierNum === 4) {
-    narrative = `Top of the maturity model. All ${total} criteria meet or exceed the Defined threshold (3.0).`;
-    action = `Maintain optimization. Drive remaining scores toward 5.0 where strategic priorities apply.`;
+    action = "Maintain optimization. Drive remaining scores toward 5.0 where strategic priorities apply.";
   } else if (tierNum >= 0) {
     const nextNum = tierNum + 1;
     const blockerCt = nextBlockers.length;
-    const otherCt = otherBlockers.length;
-    const otherWord = otherCt === 1 ? "criterion" : "criteria";
-    const otherSuffix =
-      otherCt > 0 ? ` (${otherCt} additional ${otherWord} below 3.0 in higher tiers.)` : "";
-
     if (blockerCt === 0) {
-      narrative = `${achieved} achieved with all ${nextTierName} criteria above the Defined threshold. The next tier is unlocked by raising scores in higher-tier criteria.${otherSuffix}`;
       action = `Strengthen higher-tier criteria to advance beyond Tier ${nextNum}: ${nextTierName}.`;
-    } else if (blockerCt === 1) {
-      narrative = `${achieved} achieved. A single ${nextTierName} criterion is below 3.0 — once it crosses the threshold, Tier ${nextNum}: ${nextTierName} unlocks.${otherSuffix}`;
-      action = `Focus the next quarter on the criterion below to unlock Tier ${nextNum}: ${nextTierName}.`;
     } else {
-      narrative = `${achieved} achieved with ${passCt} of ${total} criteria meeting the Defined threshold. ${blockerCt} ${nextTierName} criteria below 3.0 are the immediate blockers to advancement.${otherSuffix}`;
-      action = `Bring the ${blockerCt} ${nextTierName} criteria below to ≥3.0 to unlock Tier ${nextNum}: ${nextTierName}.`;
+      const word = blockerCt === 1 ? "criterion" : "criteria";
+      action = `Bring the ${blockerCt} ${nextTierName} ${word} below to ≥3.0 to unlock Tier ${nextNum}: ${nextTierName}.`;
     }
   } else {
-    const t0Blockers = d.criteria.filter(
-      (c) => c.section === "DEBMM Core" && c.category === "Foundation" && c.score < 3.0
-    );
-    narrative = `${achieved || "Below Foundation"} — ${failCt} criteria below 3.0 across the assessment. ${t0Blockers.length} Foundation criteria are the gating items.`;
-    action = `Prioritize Foundation criteria first: rule development, maintenance, roadmaps, threat modeling.`;
+    action = "Prioritize Foundation criteria first: rule development, maintenance, roadmaps, threat modeling.";
   }
 
   // Top current strengths — surfaced in the exec summary opposite the focus areas
@@ -287,57 +292,41 @@ sExec.addText("Executive Summary", {
   margin: 0,
 });
 
-// ── Key takeaway banner — the single-sentence "so what" for the executive ──
-const takeawayY = 0.78;
-const takeawayH = 0.36;
+// ── Tier-specific narrative banner ──
+// Same per-tier paragraph the Excel Results Dashboard shows, so the deck and
+// the workbook tell the same story. Names what's working at the achieved tier
+// AND what specifically to focus on to unlock the next tier.
+const narrativeY = 0.78;
+const narrativeH = 0.92;
 sExec.addShape(pres.shapes.RECTANGLE, {
   x: 0.6,
-  y: takeawayY,
+  y: narrativeY,
   w: 8.8,
-  h: takeawayH,
+  h: narrativeH,
   fill: { color: C.bgCard },
 });
-// Left accent in tier color
 sExec.addShape(pres.shapes.RECTANGLE, {
   x: 0.6,
-  y: takeawayY,
+  y: narrativeY,
   w: 0.08,
-  h: takeawayH,
+  h: narrativeH,
   fill: { color: tierAccentColor(exec.tierNum) },
 });
-// Build takeaway text dynamically
-const blockerCtForTakeaway = exec.blockers.length;
-let takeawayText;
-if (exec.tierNum === 4) {
-  takeawayText = `Tier 4: Expert achieved. Maintain optimization across all ${exec.total} criteria.`;
-} else if (exec.tierNum >= 0) {
-  const nextNum = exec.tierNum + 1;
-  if (blockerCtForTakeaway === 0) {
-    takeawayText = `${exec.achieved} achieved. Tier ${nextNum} requires raising upper-tier criteria.`;
-  } else if (blockerCtForTakeaway === 1) {
-    takeawayText = `${exec.achieved} achieved. 1 ${exec.nextTierName} criterion blocks Tier ${nextNum}.`;
-  } else {
-    takeawayText = `${exec.achieved} achieved. ${blockerCtForTakeaway} ${exec.nextTierName} criteria block Tier ${nextNum}.`;
-  }
-} else {
-  takeawayText = `Below Foundation. ${exec.failCt} criteria below 3.0 must be addressed to reach Tier 0.`;
-}
-sExec.addText(takeawayText, {
+sExec.addText(exec.narrative, {
   x: 0.85,
-  y: takeawayY,
-  w: 8.55,
-  h: takeawayH,
-  fontSize: 13,
+  y: narrativeY + 0.05,
+  w: 8.45,
+  h: narrativeH - 0.10,
+  fontSize: 11,
   fontFace: "Calibri",
-  bold: true,
   color: C.textPrimary,
-  valign: "middle",
+  valign: "top",
   margin: 0,
 });
 
 // ── Three-column hero: Maturity | Coverage | Next tier ──
-const heroY = 1.30;
-const heroH = 1.85;
+const heroY = 1.85;
+const heroH = 1.65;
 const heroLeftX = 0.6;
 const heroColW = 2.83;
 const heroGap = 0.15;
@@ -473,8 +462,8 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
     : exec.tierNum === 4 ? "All tiers achieved" : "Reach Foundation";
   // Headline: target tier name
   sExec.addText(headline, {
-    x: cx, y: cy, w: cw, h: 0.5,
-    fontSize: 18, fontFace: "Calibri", bold: true, color: C.cyan, margin: 0,
+    x: cx, y: cy, w: cw, h: 0.42,
+    fontSize: 16, fontFace: "Calibri", bold: true, color: C.cyan, margin: 0,
   });
 
   // Build the unlock summary sentence
@@ -503,19 +492,17 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
 
   // Visual: numeric badge + caption row (parallels the stat layout in the other cards)
   if (badgeNum) {
-    // Big number
     sExec.addText(badgeNum, {
-      x: cx, y: cy + 0.55, w: 0.7, h: 0.55,
-      fontSize: 32, fontFace: "Calibri", bold: true, color: badgeColor,
+      x: cx, y: cy + 0.50, w: 0.7, h: 0.45,
+      fontSize: 28, fontFace: "Calibri", bold: true, color: badgeColor,
       align: "left", valign: "middle", margin: 0,
     });
-    // Caption beside the number
     sExec.addText(
       blockerCt === 1
         ? `${exec.nextTierName || "Foundation"} criterion below threshold`
         : `${exec.nextTierName || "Foundation"} criteria below threshold`,
       {
-        x: cx + 0.7, y: cy + 0.55, w: cw - 0.7, h: 0.55,
+        x: cx + 0.7, y: cy + 0.50, w: cw - 0.7, h: 0.45,
         fontSize: 10, fontFace: "Calibri", italic: true, color: C.textSecondary,
         valign: "middle", margin: 0,
       }
@@ -524,14 +511,17 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
 
   // Body explainer at the bottom
   sExec.addText(unlockText, {
-    x: cx, y: cy + 1.15, w: cw, h: 0.30,
+    x: cx, y: cy + 0.98, w: cw, h: 0.28,
     fontSize: 10, fontFace: "Calibri", color: C.textPrimary, margin: 0,
   });
 });
 
 // ── Two-column lower section: Focus areas (left) | Current strengths (right) ──
-const focusY = 3.30;
-const colItemH = 0.40;
+// Sized to fit within the remaining slide height after the rich tier-narrative
+// banner pushes the 3-card hero down. 5 items at 0.35 per row keeps the deck
+// to a single slide footprint without truncating the bottom.
+const focusY = 3.55;
+const colItemH = 0.35;
 const colMaxItems = 5;
 
 function drawListItem(slide, item, iy, colX, colW, opts) {
