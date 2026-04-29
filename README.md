@@ -29,7 +29,7 @@ The same template handles self-assessments and external audits. Every question h
 
 - **Self-report bias.** The default mode is a manager rating their own team. Use the audit mode and Evidence column for any score you'll defend externally.
 - **Excel-bound.** Tier and level formulas evaluate inside Microsoft Excel. The README's `Save the file in Excel` step is non-optional — LibreOffice and Sheets evaluate some formulas differently.
-- **No automated test suite yet** for the Python scoring helpers. The CI workflow only syntax-checks Python and JavaScript.
+- **Test coverage is targeted, not exhaustive.** `tests/test_score.py` covers the scoring helpers and the progressive-cap tier rule. The PowerPoint and spreadsheet generators are not yet tested directly — visual QA happens by rendering and inspecting.
 
 ## Screenshots
 

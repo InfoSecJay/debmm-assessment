@@ -1,4 +1,4 @@
-name: lint
+name: ci
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  lint:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,11 +19,8 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install PyYAML
-        run: pip install pyyaml
-
-      - name: Syntax-check Python
-        run: python -m compileall -q scorer/
+      - name: Install Python dependencies
+        run: pip install -r scorer/requirements.txt pytest
 
       - name: Syntax-check JavaScript
         run: |
@@ -35,3 +32,6 @@ jobs:
       - name: Validate YAML sources
         run: |
           python -c "import yaml; yaml.safe_load(open('rubric/rubric.yaml')); yaml.safe_load(open('questionnaire/questionnaire.yaml'))"
+
+      - name: Run pytest
+        run: pytest tests/ -v
