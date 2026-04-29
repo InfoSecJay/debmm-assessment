@@ -96,32 +96,22 @@ pres.title = "DEBMM Assessment Report";
 const s1 = pres.addSlide();
 s1.background = { color: C.bgDark };
 
-// Top accent bar
-s1.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: 0,
-  w: 10,
-  h: 0.06,
-  fill: { color: C.cyan },
-});
-
-// Section label
-s1.addText("DETECTION ENGINEERING BEHAVIOR MATURITY MODEL", {
+// Kicker (subdued lead-in, not a decorative monospace eyebrow)
+s1.addText("Detection Engineering Maturity Assessment", {
   x: 0.6,
-  y: 1.2,
+  y: 1.4,
   w: 8.8,
-  h: 0.4,
-  fontSize: 11,
-  fontFace: "Consolas",
-  color: C.cyan,
-  charSpacing: 3,
+  h: 0.32,
+  fontSize: 13,
+  fontFace: "Calibri",
+  color: C.textSecondary,
   margin: 0,
 });
 
 // Main title
 s1.addText("DEBMM Assessment Report", {
   x: 0.6,
-  y: 1.65,
+  y: 1.75,
   w: 8.8,
   h: 0.8,
   fontSize: 36,
@@ -154,11 +144,11 @@ s1.addShape(pres.shapes.RECTANGLE, {
 });
 
 const infoItems = [
-  { label: "OVERALL SCORE", value: overallScore.toFixed(2) + " / 5.00" },
-  { label: "ACHIEVED TIER", value: achievedTier },
-  { label: "COMPLETION", value: completion },
+  { label: "Overall score", value: overallScore.toFixed(2) + " / 5.00" },
+  { label: "Achieved tier", value: achievedTier },
+  { label: "Completion", value: completion },
   {
-    label: "PASS / FAIL",
+    label: "Pass / fail",
     value: `${passing} Pass  ·  ${failing} Below Target`,
   },
 ];
@@ -170,8 +160,9 @@ infoItems.forEach((item, i) => {
     y: 4.72,
     w: 2.2,
     h: 0.25,
-    fontSize: 9,
-    fontFace: "Consolas",
+    fontSize: 11,
+    fontFace: "Calibri",
+    italic: true,
     color: C.textMuted,
     margin: 0,
   });
@@ -234,8 +225,9 @@ function buildExecSummary(d) {
     const nextNum = tierNum + 1;
     const blockerCt = nextBlockers.length;
     const otherCt = otherBlockers.length;
+    const otherWord = otherCt === 1 ? "criterion" : "criteria";
     const otherSuffix =
-      otherCt > 0 ? ` (${otherCt} additional criterion below 3.0 in higher tiers.)` : "";
+      otherCt > 0 ? ` (${otherCt} additional ${otherWord} below 3.0 in higher tiers.)` : "";
 
     if (blockerCt === 0) {
       narrative = `${achieved} achieved with all ${nextTierName} criteria above the Defined threshold. The next tier is unlocked by raising scores in higher-tier criteria.${otherSuffix}`;
@@ -255,12 +247,20 @@ function buildExecSummary(d) {
     action = `Prioritize Foundation criteria first: rule development, maintenance, roadmaps, threat modeling.`;
   }
 
+  // Top current strengths — surfaced in the exec summary opposite the focus areas
+  // so the slide tells "what's working" alongside "what to fix."
+  const strengths = d.criteria
+    .filter((c) => c.score >= 4.0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
   // The list shown on the slide IS scoped to next-tier blockers so it matches the narrative.
   return {
     achieved,
     narrative,
     action,
     blockers: nextBlockers,
+    strengths,
     passCt,
     failCt,
     total,
@@ -274,240 +274,386 @@ const exec = buildExecSummary(data);
 const sExec = pres.addSlide();
 sExec.background = { color: C.bgDark };
 
-// Top accent
-sExec.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: 0,
-  w: 10,
-  h: 0.06,
-  fill: { color: C.cyan },
-});
-
-// Section label
-sExec.addText("EXECUTIVE SUMMARY", {
+// Title (compact — single line, paired with takeaway banner below)
+sExec.addText("Executive Summary", {
   x: 0.6,
   y: 0.25,
   w: 8,
-  h: 0.3,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
-
-// Title
-sExec.addText("Where You Stand", {
-  x: 0.6,
-  y: 0.55,
-  w: 8,
-  h: 0.5,
-  fontSize: 24,
+  h: 0.45,
+  fontSize: 22,
   fontFace: "Calibri",
   bold: true,
   color: C.white,
   margin: 0,
 });
 
-// ── Verdict card (top half, full width) ──
-const verdictY = 1.15;
-const verdictH = 1.25;
+// ── Key takeaway banner — the single-sentence "so what" for the executive ──
+const takeawayY = 0.78;
+const takeawayH = 0.36;
 sExec.addShape(pres.shapes.RECTANGLE, {
   x: 0.6,
-  y: verdictY,
+  y: takeawayY,
   w: 8.8,
-  h: verdictH,
+  h: takeawayH,
   fill: { color: C.bgCard },
-  shadow: mkShadow(),
 });
-
-// Tier color accent strip on the left
-const verdictColor = (() => {
-  if (exec.tierNum === 4) return C.purple;
-  if (exec.tierNum === 3) return C.orange;
-  if (exec.tierNum === 2) return C.yellow;
-  if (exec.tierNum === 1) return C.blue;
-  if (exec.tierNum === 0) return C.green;
-  return C.red;
-})();
+// Left accent in tier color
 sExec.addShape(pres.shapes.RECTANGLE, {
   x: 0.6,
-  y: verdictY,
-  w: 0.1,
-  h: verdictH,
-  fill: { color: verdictColor },
+  y: takeawayY,
+  w: 0.08,
+  h: takeawayH,
+  fill: { color: tierAccentColor(exec.tierNum) },
 });
-
-// "ACHIEVED TIER" label
-sExec.addText("ACHIEVED TIER", {
-  x: 0.9,
-  y: verdictY + 0.12,
-  w: 4,
-  h: 0.22,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
-
-// Tier name (large)
-sExec.addText(exec.achieved || "Not Yet Achieved", {
-  x: 0.9,
-  y: verdictY + 0.32,
-  w: 7.8,
-  h: 0.6,
-  fontSize: 28,
-  fontFace: "Calibri",
-  bold: true,
-  color: verdictColor,
-  margin: 0,
-});
-
-// Score line
-sExec.addText(
-  `${overallScore.toFixed(2)} / 5.00   ·   ${exec.passCt} of ${exec.total} criteria above 3.0`,
-  {
-    x: 0.9,
-    y: verdictY + 0.92,
-    w: 7.8,
-    h: 0.28,
-    fontSize: 13,
-    fontFace: "Calibri",
-    color: C.textSecondary,
-    margin: 0,
+// Build takeaway text dynamically
+const blockerCtForTakeaway = exec.blockers.length;
+let takeawayText;
+if (exec.tierNum === 4) {
+  takeawayText = `Tier 4: Expert achieved. Maintain optimization across all ${exec.total} criteria.`;
+} else if (exec.tierNum >= 0) {
+  const nextNum = exec.tierNum + 1;
+  if (blockerCtForTakeaway === 0) {
+    takeawayText = `${exec.achieved} achieved. Tier ${nextNum} requires raising upper-tier criteria.`;
+  } else if (blockerCtForTakeaway === 1) {
+    takeawayText = `${exec.achieved} achieved. 1 ${exec.nextTierName} criterion blocks Tier ${nextNum}.`;
+  } else {
+    takeawayText = `${exec.achieved} achieved. ${blockerCtForTakeaway} ${exec.nextTierName} criteria block Tier ${nextNum}.`;
   }
-);
-
-// ── Narrative block ──
-sExec.addText(exec.narrative, {
-  x: 0.6,
-  y: verdictY + verdictH + 0.15,
-  w: 8.8,
-  h: 0.5,
-  fontSize: 11,
-  fontFace: "Calibri",
-  color: C.textPrimary,
-  margin: 0,
-});
-
-// ── Action / next step (highlighted) ──
-sExec.addText(`→ ${exec.action}`, {
-  x: 0.6,
-  y: verdictY + verdictH + 0.62,
-  w: 8.8,
-  h: 0.32,
-  fontSize: 11,
+} else {
+  takeawayText = `Below Foundation. ${exec.failCt} criteria below 3.0 must be addressed to reach Tier 0.`;
+}
+sExec.addText(takeawayText, {
+  x: 0.85,
+  y: takeawayY,
+  w: 8.55,
+  h: takeawayH,
+  fontSize: 13,
   fontFace: "Calibri",
   bold: true,
-  color: C.cyan,
+  color: C.textPrimary,
+  valign: "middle",
   margin: 0,
 });
 
-// ── Focus areas list (only if there are blockers in the next tier) ──
-const focusY = 3.4;
+// ── Three-column hero: Maturity | Coverage | Next tier ──
+const heroY = 1.30;
+const heroH = 1.85;
+const heroLeftX = 0.6;
+const heroColW = 2.83;
+const heroGap = 0.15;
+
+function tierAccentColor(n) {
+  if (n === 4) return C.purple;
+  if (n === 3) return C.orange;
+  if (n === 2) return C.yellow;
+  if (n === 1) return C.blue;
+  if (n === 0) return C.green;
+  return C.red;
+}
+const verdictColor = tierAccentColor(exec.tierNum);
+
+function drawHeroColumn(slide, x, y, w, h, accent, label, contentFn) {
+  slide.addShape(pres.shapes.RECTANGLE, {
+    x, y, w, h,
+    fill: { color: C.bgCard },
+    shadow: mkShadow(),
+  });
+  slide.addShape(pres.shapes.RECTANGLE, {
+    x, y, w: 0.08, h,
+    fill: { color: accent },
+  });
+  slide.addText(label, {
+    x: x + 0.22, y: y + 0.14, w: w - 0.32, h: 0.22,
+    fontSize: 10, fontFace: "Calibri", italic: true, color: C.textMuted, margin: 0,
+  });
+  contentFn(x + 0.22, y + 0.40, w - 0.32);
+}
+
+// Column 1 — Maturity (Verdict)
+drawHeroColumn(sExec, heroLeftX, heroY, heroColW, heroH, verdictColor, "Maturity", (cx, cy, cw) => {
+  // Tier badge: large name in tier color
+  sExec.addText(exec.achieved || "Not Yet Achieved", {
+    x: cx, y: cy, w: cw, h: 0.5,
+    fontSize: 22, fontFace: "Calibri", bold: true, color: verdictColor, margin: 0,
+  });
+  // Score
+  sExec.addText(`${overallScore.toFixed(2)} / 5.00`, {
+    x: cx, y: cy + 0.50, w: cw, h: 0.28,
+    fontSize: 14, fontFace: "Calibri", color: C.textPrimary, margin: 0,
+  });
+  // Tier stepper — visual journey across all 5 tiers
+  const stepperY = cy + 0.92;
+  const stepCount = 5;
+  const stepRadius = 0.10;
+  const stepGap = (cw - stepCount * stepRadius * 2) / (stepCount - 1);
+  for (let t = 0; t < stepCount; t++) {
+    const sx = cx + t * (stepRadius * 2 + stepGap);
+    let dotColor;
+    let textColor;
+    if (t < exec.tierNum) {
+      dotColor = tierAccentColor(t); textColor = tierAccentColor(t);
+    } else if (t === exec.tierNum) {
+      dotColor = tierAccentColor(t); textColor = tierAccentColor(t);
+    } else {
+      dotColor = C.bgCardAlt; textColor = C.textMuted;
+    }
+    // Connector line to next dot (drawn before the dot so the dot sits on top)
+    if (t < stepCount - 1) {
+      const lineColor = (t < exec.tierNum) ? tierAccentColor(t) : C.bgCardAlt;
+      sExec.addShape(pres.shapes.RECTANGLE, {
+        x: sx + stepRadius * 2, y: stepperY + stepRadius - 0.015,
+        w: stepGap, h: 0.03,
+        fill: { color: lineColor },
+      });
+    }
+    // Dot
+    sExec.addShape(pres.shapes.OVAL, {
+      x: sx, y: stepperY,
+      w: stepRadius * 2, h: stepRadius * 2,
+      fill: { color: dotColor },
+    });
+    // T0..T4 label below
+    sExec.addText(`T${t}`, {
+      x: sx - 0.08, y: stepperY + stepRadius * 2 + 0.06, w: stepRadius * 2 + 0.16, h: 0.2,
+      fontSize: 9, fontFace: "Calibri", color: textColor, align: "center", margin: 0,
+    });
+  }
+});
+
+// Column 2 — Coverage (Implications)
+drawHeroColumn(sExec, heroLeftX + heroColW + heroGap, heroY, heroColW, heroH, C.cyan, "Coverage", (cx, cy, cw) => {
+  // Big stat
+  sExec.addText(`${exec.passCt} of ${exec.total}`, {
+    x: cx, y: cy, w: cw, h: 0.5,
+    fontSize: 22, fontFace: "Calibri", bold: true, color: C.textPrimary, margin: 0,
+  });
+  sExec.addText("criteria meet the Defined threshold", {
+    x: cx, y: cy + 0.50, w: cw, h: 0.22,
+    fontSize: 10, fontFace: "Calibri", italic: true, color: C.textMuted, margin: 0,
+  });
+  // Progress bar (cyan filled to passCt/total)
+  const pct = exec.total > 0 ? exec.passCt / exec.total : 0;
+  const barY = cy + 0.85;
+  const barH = 0.16;
+  sExec.addShape(pres.shapes.RECTANGLE, {
+    x: cx, y: barY, w: cw, h: barH,
+    fill: { color: C.bgDark },
+  });
+  sExec.addShape(pres.shapes.RECTANGLE, {
+    x: cx, y: barY, w: cw * pct, h: barH,
+    fill: { color: C.cyan },
+  });
+  // Percentage label
+  sExec.addText(`${Math.round(pct * 100)}%`, {
+    x: cx, y: barY + barH + 0.04, w: cw, h: 0.22,
+    fontSize: 11, fontFace: "Calibri", bold: true, color: C.cyan, margin: 0,
+  });
+  // Failing count caption (right-aligned next to the percentage)
+  if (exec.failCt > 0) {
+    sExec.addText(
+      `${exec.failCt} ${exec.failCt === 1 ? "criterion" : "criteria"} below threshold`,
+      {
+        x: cx, y: barY + barH + 0.04, w: cw, h: 0.22,
+        fontSize: 10, fontFace: "Calibri", italic: true, color: C.textMuted, align: "right", margin: 0,
+      }
+    );
+  } else {
+    // 100% case — fill the right-hand area with a green confirmation so the row isn't half-empty
+    sExec.addText("All criteria above 3.0", {
+      x: cx, y: barY + barH + 0.04, w: cw, h: 0.22,
+      fontSize: 10, fontFace: "Calibri", italic: true, color: C.green, align: "right", margin: 0,
+    });
+  }
+});
+
+// Column 3 — Next tier (Next step)
+drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, heroH, C.cyan, "Next tier", (cx, cy, cw) => {
+  const headline = exec.tierNum >= 0 && exec.tierNum < 4
+    ? `Tier ${exec.tierNum + 1}: ${exec.nextTierName}`
+    : exec.tierNum === 4 ? "All tiers achieved" : "Reach Foundation";
+  // Headline: target tier name
+  sExec.addText(headline, {
+    x: cx, y: cy, w: cw, h: 0.5,
+    fontSize: 18, fontFace: "Calibri", bold: true, color: C.cyan, margin: 0,
+  });
+
+  // Build the unlock summary sentence
+  const blockerCt = exec.blockers.length;
+  let unlockText;
+  let badgeColor = C.cyan;
+  let badgeNum = "";
+  if (exec.tierNum === 4) {
+    unlockText = "Maintain optimization across all criteria. Continue measuring against the rubric.";
+    badgeNum = "";
+  } else if (exec.tierNum >= 0) {
+    if (blockerCt === 0) {
+      unlockText = `All ${exec.nextTierName} criteria meet the threshold. Raise scores in higher-tier criteria to continue advancing.`;
+      badgeNum = "";
+    } else {
+      const word = blockerCt === 1 ? "criterion" : "criteria";
+      unlockText = `Unlocked by raising ${blockerCt} ${exec.nextTierName} ${word} above the Defined threshold (3.0).`;
+      badgeNum = String(blockerCt);
+    }
+  } else {
+    const word = blockerCt === 1 ? "criterion" : "criteria";
+    unlockText = `Reach Foundation by raising ${blockerCt} ${word} above the Defined threshold (3.0).`;
+    badgeNum = String(blockerCt);
+    badgeColor = C.red;
+  }
+
+  // Visual: numeric badge + caption row (parallels the stat layout in the other cards)
+  if (badgeNum) {
+    // Big number
+    sExec.addText(badgeNum, {
+      x: cx, y: cy + 0.55, w: 0.7, h: 0.55,
+      fontSize: 32, fontFace: "Calibri", bold: true, color: badgeColor,
+      align: "left", valign: "middle", margin: 0,
+    });
+    // Caption beside the number
+    sExec.addText(
+      blockerCt === 1
+        ? `${exec.nextTierName || "Foundation"} criterion below threshold`
+        : `${exec.nextTierName || "Foundation"} criteria below threshold`,
+      {
+        x: cx + 0.7, y: cy + 0.55, w: cw - 0.7, h: 0.55,
+        fontSize: 10, fontFace: "Calibri", italic: true, color: C.textSecondary,
+        valign: "middle", margin: 0,
+      }
+    );
+  }
+
+  // Body explainer at the bottom
+  sExec.addText(unlockText, {
+    x: cx, y: cy + 1.15, w: cw, h: 0.30,
+    fontSize: 10, fontFace: "Calibri", color: C.textPrimary, margin: 0,
+  });
+});
+
+// ── Two-column lower section: Focus areas (left) | Current strengths (right) ──
+const focusY = 3.30;
+const colItemH = 0.40;
+const colMaxItems = 5;
+
+function drawListItem(slide, item, iy, colX, colW, opts) {
+  const pillW = 0.65;
+  const pillH = 0.24;
+  // Score pill (sized for visibility without crowding rows)
+  slide.addShape(pres.shapes.RECTANGLE, {
+    x: colX,
+    y: iy + 0.05,
+    w: pillW,
+    h: pillH,
+    fill: { color: getScoreColor(item.score) },
+  });
+  slide.addText(item.score.toFixed(2), {
+    x: colX,
+    y: iy + 0.05,
+    w: pillW,
+    h: pillH,
+    fontSize: 11,
+    fontFace: "Calibri",
+    bold: true,
+    color: C.bgDark,
+    align: "center",
+    valign: "middle",
+    margin: 0,
+  });
+  // Criterion name
+  slide.addText(item.criterion, {
+    x: colX + pillW + 0.13,
+    y: iy + 0.02,
+    w: colW - pillW - 0.13,
+    h: 0.2,
+    fontSize: 11,
+    fontFace: "Calibri",
+    bold: true,
+    color: C.textPrimary,
+    margin: 0,
+  });
+  // Subline (target for blockers, category for strengths)
+  if (opts.subline) {
+    slide.addText(opts.subline, {
+      x: colX + pillW + 0.13,
+      y: iy + 0.21,
+      w: colW - pillW - 0.13,
+      h: 0.17,
+      fontSize: 9,
+      fontFace: "Calibri",
+      color: C.textSecondary,
+      italic: true,
+      margin: 0,
+    });
+  }
+}
+
+// Left column — Focus Areas
+const execLeftX = 0.6;
+const execColW = 4.3;
+const execRightX = execLeftX + execColW + 0.2;
+
 if (exec.blockers.length > 0) {
   sExec.addText(
-    `FOCUS AREAS — ${exec.nextTierName.toUpperCase()} CRITERIA TO ADDRESS`,
+    `Focus areas — ${exec.nextTierName} criteria to address`,
     {
-      x: 0.6,
+      x: execLeftX,
       y: focusY,
-      w: 8.8,
-      h: 0.22,
-      fontSize: 9,
-      fontFace: "Consolas",
-      color: C.textMuted,
-      charSpacing: 2,
-      margin: 0,
-    }
-  );
-
-  // Show up to 3 next-tier blockers; remainder summarized in footnote
-  const focusItems = exec.blockers.slice(0, 3);
-  const itemH = 0.5;
-  focusItems.forEach((b, i) => {
-    const iy = focusY + 0.32 + i * itemH;
-    // Score pill
-    sExec.addShape(pres.shapes.RECTANGLE, {
-      x: 0.6,
-      y: iy + 0.05,
-      w: 0.55,
-      h: 0.22,
-      fill: { color: getScoreColor(b.score) },
-    });
-    sExec.addText(b.score.toFixed(2), {
-      x: 0.6,
-      y: iy + 0.05,
-      w: 0.55,
-      h: 0.22,
-      fontSize: 9,
-      fontFace: "Consolas",
-      bold: true,
-      color: C.bgDark,
-      align: "center",
-      valign: "middle",
-      margin: 0,
-    });
-    // Criterion name (line 1)
-    sExec.addText(b.criterion, {
-      x: 1.3,
-      y: iy + 0.02,
-      w: 8.0,
+      w: execColW,
       h: 0.24,
       fontSize: 11,
       fontFace: "Calibri",
       bold: true,
-      color: C.textPrimary,
+      color: C.textSecondary,
       margin: 0,
-    });
-    // Target description (line 2) — what "Defined" looks like for this criterion
-    if (b.target) {
-      sExec.addText(`Target: ${b.target}`, {
-        x: 1.3,
-        y: iy + 0.24,
-        w: 8.0,
-        h: 0.22,
-        fontSize: 9,
-        fontFace: "Calibri",
-        color: C.textSecondary,
-        italic: true,
-        margin: 0,
-      });
     }
-  });
+  );
 
-  // Footnote if list was truncated
-  if (exec.blockers.length > focusItems.length) {
-    const more = exec.blockers.length - focusItems.length;
-    sExec.addText(
-      `+ ${more} more — see Slide 4 for the full criteria breakdown.`,
-      {
-        x: 0.6,
-        y: focusY + 0.32 + focusItems.length * itemH + 0.05,
-        w: 8.8,
-        h: 0.22,
-        fontSize: 9,
-        fontFace: "Calibri",
-        italic: true,
-        color: C.textMuted,
-        margin: 0,
-      }
-    );
-  }
+  const focusItems = exec.blockers.slice(0, colMaxItems);
+  focusItems.forEach((b, i) => {
+    const iy = focusY + 0.32 + i * colItemH;
+    // Take only the first measurable clause from the rubric's level-3 target so it
+    // fits on a single line in the narrower two-column layout.
+    const targetSummary = b.target ? b.target.split(";")[0].trim().replace(/\.$/, "") : "";
+    drawListItem(sExec, b, iy, execLeftX, execColW, {
+      subline: targetSummary ? `Target: ${targetSummary}` : "",
+    });
+  });
 } else {
   sExec.addText(
-    `All ${exec.nextTierName} criteria meet the Defined threshold. Advancement requires raising scores in higher-tier criteria.`,
+    `All ${exec.nextTierName} criteria meet the Defined threshold.`,
     {
-      x: 0.6,
+      x: execLeftX,
       y: focusY + 0.2,
-      w: 8.8,
+      w: execColW,
       h: 0.6,
-      fontSize: 12,
+      fontSize: 11,
       fontFace: "Calibri",
       color: C.green,
       margin: 0,
     }
   );
+}
+
+// Right column — Current Strengths
+if (exec.strengths.length > 0) {
+  sExec.addText("Current strengths — top performers", {
+    x: execRightX,
+    y: focusY,
+    w: execColW,
+    h: 0.24,
+    fontSize: 11,
+    fontFace: "Calibri",
+    bold: true,
+    color: C.textSecondary,
+    margin: 0,
+  });
+
+  const strengthItems = exec.strengths.slice(0, colMaxItems);
+  strengthItems.forEach((s, i) => {
+    const iy = focusY + 0.32 + i * colItemH;
+    drawListItem(sExec, s, iy, execRightX, execColW, {
+      subline: s.category,
+    });
+  });
 }
 
 // ================================================================
@@ -516,32 +662,10 @@ if (exec.blockers.length > 0) {
 const s2 = pres.addSlide();
 s2.background = { color: C.bgDark };
 
-// Top accent
-s2.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: 0,
-  w: 10,
-  h: 0.06,
-  fill: { color: C.cyan },
-});
-
-// Section label
-s2.addText("01  TIER PROGRESSION", {
-  x: 0.6,
-  y: 0.25,
-  w: 8,
-  h: 0.3,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
-
-// Title
+// Title (decorative section label and cyan top bar removed)
 s2.addText("DEBMM Tier Overview", {
   x: 0.6,
-  y: 0.55,
+  y: 0.25,
   w: 8,
   h: 0.5,
   fontSize: 24,
@@ -550,6 +674,22 @@ s2.addText("DEBMM Tier Overview", {
   color: C.white,
   margin: 0,
 });
+
+// Explanatory subtitle so the reader knows what they're looking at
+s2.addText(
+  "Five progressive tiers from Foundation to Expert. A tier is achieved only when every criterion in that tier and below scores at least 3.0 (Defined level).",
+  {
+    x: 0.6,
+    y: 0.78,
+    w: 9.2,
+    h: 0.36,
+    fontSize: 12,
+    fontFace: "Calibri",
+    italic: true,
+    color: C.textSecondary,
+    margin: 0,
+  }
+);
 
 // 5 Tier KPI cards across the top
 const cardW = 1.68;
@@ -587,8 +727,8 @@ tiers.forEach((t, i) => {
     y: cardY + 0.15,
     w: cardW - 0.24,
     h: 0.22,
-    fontSize: 8,
-    fontFace: "Consolas",
+    fontSize: 10,
+    fontFace: "Calibri",
     color: C.textMuted,
     margin: 0,
   });
@@ -652,15 +792,16 @@ tiers.forEach((t, i) => {
 
 // ── Bottom section: Summary stats ──
 const statY = 3.05;
-s2.addText("ASSESSMENT SUMMARY", {
+s2.addText("Assessment summary", {
   x: 0.6,
   y: statY,
   w: 8,
   h: 0.25,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
+  fontSize: 11,
+  fontFace: "Calibri",
+  bold: true,
+  color: C.textSecondary,
+  charSpacing: 0,
   margin: 0,
 });
 
@@ -723,8 +864,9 @@ summCards.forEach((sc, i) => {
     y: sy + 0.1,
     w: scW - 0.2,
     h: 0.18,
-    fontSize: 8,
-    fontFace: "Consolas",
+    fontSize: 10,
+    fontFace: "Calibri",
+    italic: true,
     color: C.textMuted,
     margin: 0,
   });
@@ -758,83 +900,8 @@ summCards.forEach((sc, i) => {
   }
 });
 
-// Bottom bar - tier progression visual
-const barY = 4.8;
-s2.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: barY,
-  w: 10,
-  h: 0.825,
-  fill: { color: C.bgCard },
-});
-
-s2.addText("TIER PROGRESSION", {
-  x: 0.6,
-  y: barY + 0.08,
-  w: 3,
-  h: 0.18,
-  fontSize: 8,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
-
-const segW = 1.68;
-tiers.forEach((t, i) => {
-  const sx = 0.6 + i * (segW + 0.08);
-  const sy = barY + 0.32;
-
-  let segColor = C.bgCardAlt;
-  let borderColor = C.border;
-  let labelColor = C.textMuted;
-
-  if (t.progression === "Complete") {
-    segColor = "0D2818";
-    borderColor = C.green;
-    labelColor = C.green;
-  } else if (t.progression === "Current") {
-    segColor = "0B1F2E";
-    borderColor = C.cyan;
-    labelColor = C.cyan;
-  } else if (t.progression === "In Progress") {
-    segColor = "1A1708";
-    borderColor = C.yellow;
-    labelColor = C.yellow;
-  }
-
-  s2.addShape(pres.shapes.RECTANGLE, {
-    x: sx,
-    y: sy,
-    w: segW,
-    h: 0.4,
-    fill: { color: segColor },
-    line: { color: borderColor, width: 1 },
-  });
-
-  s2.addText(`${t.id}  ${t.name}`, {
-    x: sx + 0.1,
-    y: sy + 0.02,
-    w: segW - 0.2,
-    h: 0.2,
-    fontSize: 9,
-    fontFace: "Consolas",
-    bold: true,
-    color: labelColor,
-    margin: 0,
-  });
-
-  s2.addText(t.progression, {
-    x: sx + 0.1,
-    y: sy + 0.2,
-    w: segW - 0.2,
-    h: 0.16,
-    fontSize: 8,
-    fontFace: "Calibri",
-    color: labelColor,
-    margin: 0,
-  });
-});
+// (Removed redundant bottom "TIER PROGRESSION" footer — the top tier cards
+// already convey Complete / Current / In Progress per tier.)
 
 // ================================================================
 // SLIDE 3: DEBMM Core Criteria Detail
@@ -842,29 +909,10 @@ tiers.forEach((t, i) => {
 const s3 = pres.addSlide();
 s3.background = { color: C.bgDark };
 
-s3.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: 0,
-  w: 10,
-  h: 0.06,
-  fill: { color: C.cyan },
-});
-
-s3.addText("02  DEBMM CORE", {
-  x: 0.6,
-  y: 0.2,
-  w: 8,
-  h: 0.25,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
-
+// Title (decorative section label and cyan top bar removed)
 s3.addText("Core Criteria Breakdown", {
   x: 0.6,
-  y: 0.45,
+  y: 0.25,
   w: 8,
   h: 0.4,
   fontSize: 22,
@@ -873,6 +921,22 @@ s3.addText("Core Criteria Breakdown", {
   color: C.white,
   margin: 0,
 });
+
+// Explanatory subtitle
+s3.addText(
+  "All 18 DEBMM core criteria with score, maturity level, and pass/fail. Rows in red are below the 3.0 threshold and prevent tier advancement.",
+  {
+    x: 0.6,
+    y: 0.65,
+    w: 9.2,
+    h: 0.28,
+    fontSize: 11,
+    fontFace: "Calibri",
+    italic: true,
+    color: C.textSecondary,
+    margin: 0,
+  }
+);
 
 // Table header
 const tblHeaderY = 0.95;
@@ -890,15 +954,15 @@ s3.addShape(pres.shapes.RECTANGLE, {
 });
 
 colLabels.forEach((lbl, i) => {
-  s3.addText(lbl.toUpperCase(), {
+  s3.addText(lbl, {
     x: colX[i],
     y: tblHeaderY + 0.02,
     w: colW[i],
     h: 0.24,
-    fontSize: 7,
-    fontFace: "Consolas",
+    fontSize: 10,
+    fontFace: "Calibri",
+    bold: true,
     color: C.textMuted,
-    charSpacing: 1,
     margin: 0,
   });
 });
@@ -1021,29 +1085,10 @@ debmmCore.forEach((c, i) => {
 const s4 = pres.addSlide();
 s4.background = { color: C.bgDark };
 
-s4.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: 0,
-  w: 10,
-  h: 0.06,
-  fill: { color: C.cyan },
-});
-
-s4.addText("03  ENRICHMENT", {
-  x: 0.6,
-  y: 0.2,
-  w: 8,
-  h: 0.25,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
-
+// Title (decorative section label and cyan top bar removed)
 s4.addText("People, Process & Governance", {
   x: 0.6,
-  y: 0.45,
+  y: 0.25,
   w: 8,
   h: 0.4,
   fontSize: 22,
@@ -1052,6 +1097,22 @@ s4.addText("People, Process & Governance", {
   color: C.white,
   margin: 0,
 });
+
+// Explanatory subtitle
+s4.addText(
+  "Six organizational dimensions enriching the DEBMM core. These shape what detection-engineering behaviors are possible but do not affect tier determination.",
+  {
+    x: 0.6,
+    y: 0.65,
+    w: 9.2,
+    h: 0.3,
+    fontSize: 11,
+    fontFace: "Calibri",
+    italic: true,
+    color: C.textSecondary,
+    margin: 0,
+  }
+);
 
 // Enrichment as cards (2 columns x 3 rows)
 const enrCardW = 4.1;
@@ -1087,15 +1148,15 @@ enrichment.forEach((c, i) => {
   });
 
   // Category label
-  s4.addText(c.category.toUpperCase(), {
+  s4.addText(c.category, {
     x: cx + 0.2,
     y: cy + 0.1,
     w: enrCardW - 1.2,
     h: 0.18,
-    fontSize: 7,
-    fontFace: "Consolas",
+    fontSize: 10,
+    fontFace: "Calibri",
+    italic: true,
     color: C.textMuted,
-    charSpacing: 1,
     margin: 0,
   });
 
@@ -1204,12 +1265,12 @@ const enrAvg =
   enrichment.reduce((a, c) => a + c.score, 0) / enrichment.length;
 
 const enrStats = [
-  { label: "ENRICHMENT AVG", value: enrAvg.toFixed(2), color: C.cyan },
-  { label: "PEOPLE & ORG", value: poAvg.toFixed(2), color: C.green },
-  { label: "PROCESS & GOV", value: pgAvg.toFixed(2), color: C.blue },
+  { label: "Enrichment avg", value: enrAvg.toFixed(2), color: C.cyan },
+  { label: "People & Org", value: poAvg.toFixed(2), color: C.green },
+  { label: "Process & Gov", value: pgAvg.toFixed(2), color: C.blue },
   {
-    label: "ALL PASSING",
-    value: enrichment.every((c) => c.status.includes("Pass")) ? "YES" : "NO",
+    label: "All passing",
+    value: enrichment.every((c) => c.status.includes("Pass")) ? "Yes" : "No",
     color: enrichment.every((c) => c.status.includes("Pass"))
       ? C.green
       : C.red,
@@ -1223,8 +1284,9 @@ enrStats.forEach((st, i) => {
     y: enrBarY + 0.15,
     w: 2.1,
     h: 0.2,
-    fontSize: 9,
-    fontFace: "Consolas",
+    fontSize: 11,
+    fontFace: "Calibri",
+    italic: true,
     color: C.textMuted,
     margin: 0,
   });
