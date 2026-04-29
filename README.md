@@ -4,26 +4,28 @@ A toolkit for SOC managers to assess detection engineering maturity, based on [E
 
 ## Screenshots
 
-**Executive Summary slide** — the one-slide answer for a CISO: tier achieved, what's working, what blocks the next tier, and the specific criteria to address.
+### Executive deck
 
-![Executive Summary — verdict, coverage, next-tier unlock with focus areas and current strengths](docs/screenshots/Slide2.JPG)
+The 5-slide PowerPoint generated from a completed assessment.
 
-**The workbook** — where the manager actually does the work. 46 dropdown answers across 7 tabs; auto-scoring drives every downstream view.
-
-![Assessment tab in Excel — dropdown-driven answers with inline level anchors and seven-tab structure](docs/screenshots/Spreadsheet1.jpg)
-
-**Supporting slides in the executive deck.**
+![DEBMM Executive Summary slide — tier verdict, coverage progress bar, next-tier unlock, and focus areas](docs/screenshots/Slide2.JPG)
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/Slide1.JPG" alt="Title slide with overall score, achieved tier, and pass/fail summary"></td>
-    <td width="50%"><img src="docs/screenshots/Slide3.JPG" alt="DEBMM Tier Overview — five tier KPI cards with progression status"></td>
+    <td width="50%" align="center"><img src="docs/screenshots/Slide1.JPG" alt="Title slide with overall score, achieved tier, and pass/fail summary"><br><sub><b>Title</b> — overall score, tier, pass/fail summary</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/Slide3.JPG" alt="DEBMM Tier Overview — five tier KPI cards"><br><sub><b>Tier Overview</b> — five tier KPI cards with progression status</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/Slide4.JPG" alt="Core Criteria Breakdown — table of all 18 DEBMM criteria with scores and status"></td>
-    <td width="50%"><img src="docs/screenshots/Slide5.JPG" alt="People, Process & Governance enrichment dimensions"></td>
+    <td width="50%" align="center"><img src="docs/screenshots/Slide4.JPG" alt="Core Criteria Breakdown — table of all 18 DEBMM criteria"><br><sub><b>Core Criteria</b> — all 18 criteria, failing rows in red</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/Slide5.JPG" alt="People, Process & Governance enrichment dimensions"><br><sub><b>Enrichment</b> — People, Process & Governance dimensions</sub></td>
   </tr>
 </table>
+
+### Assessment workbook
+
+The Excel input. 46 dropdown answers across 7 tabs; auto-scoring drives every downstream tab and report.
+
+![Assessment tab in Excel showing dropdown-driven scoring](docs/screenshots/Spreadsheet1.jpg)
 
 ## Why I Built This
 
