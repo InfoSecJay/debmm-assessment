@@ -4,12 +4,16 @@ A toolkit for SOC managers to assess detection engineering maturity, based on [E
 
 ## Screenshots
 
+![Executive Summary — verdict, coverage, next-tier unlock with focus areas and current strengths](docs/screenshots/Slide2.JPG)
+
 <table>
   <tr>
-    <td><img width="1404" height="786" alt="image" src="https://github.com/user-attachments/assets/f0688dc8-8460-49d7-8f31-9783bd58b371" /></td>
-    <td><img width="1404" height="792" alt="image" src="https://github.com/user-attachments/assets/9e1e331a-053e-45c7-b250-2a9042fa73be" /></td>
-    <td><img width="1399" height="788" alt="image" src="https://github.com/user-attachments/assets/a173f544-a55d-452f-bf07-13271a6b0c14" /></td>
-    <td><img width="1402" height="785" alt="image" src="https://github.com/user-attachments/assets/5f94bc42-ceaf-4906-add2-1fe78a8a2b69" /></td>
+    <td width="50%"><img src="docs/screenshots/Slide1.JPG" alt="Title slide with overall score, achieved tier, and pass/fail summary"></td>
+    <td width="50%"><img src="docs/screenshots/Slide3.JPG" alt="DEBMM Tier Overview — five tier KPI cards with progression status"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/Slide4.JPG" alt="Core Criteria Breakdown — table of all 18 DEBMM criteria with scores and status"></td>
+    <td width="50%"><img src="docs/screenshots/Slide5.JPG" alt="People, Process & Governance enrichment dimensions"></td>
   </tr>
 </table>
 
