@@ -4,7 +4,15 @@ A toolkit for SOC managers to assess detection engineering maturity, based on [E
 
 ## Screenshots
 
+**Executive Summary slide** — the one-slide answer for a CISO: tier achieved, what's working, what blocks the next tier, and the specific criteria to address.
+
 ![Executive Summary — verdict, coverage, next-tier unlock with focus areas and current strengths](docs/screenshots/Slide2.JPG)
+
+**The workbook** — where the manager actually does the work. 46 dropdown answers across 7 tabs; auto-scoring drives every downstream view.
+
+![Assessment tab in Excel — dropdown-driven answers with inline level anchors and seven-tab structure](docs/screenshots/Spreadsheet1.jpg)
+
+**Supporting slides in the executive deck.**
 
 <table>
   <tr>
