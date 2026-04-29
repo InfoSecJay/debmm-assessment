@@ -10,10 +10,37 @@ Reads the Report Data tab (designed for machine consumption).
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import openpyxl
+import yaml
+
+RUBRIC_PATH = Path(__file__).resolve().parent.parent / "rubric" / "rubric.yaml"
+
+
+def load_rubric_targets(rubric_path: Path = RUBRIC_PATH) -> dict:
+    """Build a {criterion_name: level-3 target description} map from rubric.yaml.
+
+    Prefers the quantitative line (concrete and short); falls back to qualitative.
+    """
+    if not rubric_path.exists():
+        return {}
+    with open(rubric_path, "r", encoding="utf-8") as f:
+        rubric = yaml.safe_load(f)
+
+    targets = {}
+    for tier in rubric.get("tiers", []):
+        for crit in tier.get("criteria", []):
+            name = (crit.get("name") or "").strip()
+            if not name:
+                continue
+            level3 = (crit.get("levels") or {}).get(3, {}) or {}
+            target = (level3.get("quantitative") or level3.get("qualitative") or "").strip()
+            # Collapse whitespace from multi-line YAML blocks
+            target = " ".join(target.split())
+            targets[name] = target
+    return targets
 
 
 def _to_float(value):
@@ -56,6 +83,9 @@ def extract_report_data(xlsx_path: Path) -> dict:
     date_val = summary.get("Date")
     if hasattr(date_val, "strftime"):
         date_str = date_val.strftime("%Y-%m-%d")
+    elif isinstance(date_val, (int, float)) and date_val > 1:
+        # Excel serial date — days since 1899-12-30 (Lotus 1-2-3 epoch)
+        date_str = (datetime(1899, 12, 30) + timedelta(days=int(date_val))).strftime("%Y-%m-%d")
     else:
         date_str = _to_str(date_val, "N/A")
 
@@ -70,30 +100,41 @@ def extract_report_data(xlsx_path: Path) -> dict:
     achieved_tier = _to_str(summary.get("Achieved Tier", "N/A"))
     completion = _to_str(summary.get("Completion", "0 / 0"))
 
-    # ── Table 2: Tier Progression (row 10 = header, rows 11-15 = data) ──
+    def _find_header_row(col1_label: str, scan_to: int = 50) -> int | None:
+        """Return the row whose column-A value matches col1_label, or None."""
+        for r in range(1, scan_to):
+            if _to_str(ws.cell(row=r, column=1).value) == col1_label:
+                return r
+        return None
+
+    # ── Table 2: Tier Progression — locate by "Tier" header in column A ──
     tiers = []
-    for row in range(11, 16):
-        tier_id = _to_str(ws.cell(row=row, column=1).value)
-        if not tier_id:
-            break
-        tier_name = _to_str(ws.cell(row=row, column=2).value)
-        score = _to_float(ws.cell(row=row, column=3).value)
-        level = _to_str(ws.cell(row=row, column=4).value, "N/A")
-        status = _to_str(ws.cell(row=row, column=5).value, "N/A")
-        progression = _to_str(ws.cell(row=row, column=6).value, "Not Started")
+    tier_hdr = _find_header_row("Tier")
+    if tier_hdr is not None:
+        for row in range(tier_hdr + 1, tier_hdr + 1 + 8):
+            tier_id = _to_str(ws.cell(row=row, column=1).value)
+            if not tier_id or tier_id == "Section":
+                break
+            tier_name = _to_str(ws.cell(row=row, column=2).value)
+            score = _to_float(ws.cell(row=row, column=3).value)
+            level = _to_str(ws.cell(row=row, column=4).value, "N/A")
+            status = _to_str(ws.cell(row=row, column=5).value, "N/A")
+            progression = _to_str(ws.cell(row=row, column=6).value, "Not Started")
 
-        tiers.append({
-            "id": tier_id,
-            "name": tier_name,
-            "score": score if score is not None else 0.0,
-            "level": level,
-            "status": status,
-            "progression": progression,
-        })
+            tiers.append({
+                "id": tier_id,
+                "name": tier_name,
+                "score": score if score is not None else 0.0,
+                "level": level,
+                "status": status,
+                "progression": progression,
+            })
 
-    # ── Table 3: Criterion Breakdown (row 17 = header, rows 18+ = data) ──
+    # ── Table 3: Criterion Breakdown — locate by "Section" header in column A ──
+    rubric_targets = load_rubric_targets()
     criteria = []
-    row = 18
+    crit_hdr = _find_header_row("Section")
+    row = (crit_hdr + 1) if crit_hdr is not None else 18
     while True:
         section = _to_str(ws.cell(row=row, column=1).value)
         if not section:
@@ -111,6 +152,7 @@ def extract_report_data(xlsx_path: Path) -> dict:
             "score": score if score is not None else 0.0,
             "level": level,
             "status": status,
+            "target": rubric_targets.get(criterion, ""),
         })
         row += 1
 

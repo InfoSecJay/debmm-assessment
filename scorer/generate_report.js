@@ -131,20 +131,18 @@ s1.addText("DEBMM Assessment Report", {
   margin: 0,
 });
 
-// Subtitle
-s1.addText(
-  `DEBMM Assessment — ${typeof assessDate === "number" ? "Current Period" : assessDate}`,
-  {
-    x: 0.6,
-    y: 2.5,
-    w: 8.8,
-    h: 0.4,
-    fontSize: 16,
-    fontFace: "Calibri",
-    color: C.textSecondary,
-    margin: 0,
-  }
-);
+// Subtitle — org and date
+const subtitleParts = [org || "Organization", assessDate].filter(Boolean);
+s1.addText(subtitleParts.join("  ·  "), {
+  x: 0.6,
+  y: 2.5,
+  w: 8.8,
+  h: 0.4,
+  fontSize: 16,
+  fontFace: "Calibri",
+  color: C.textSecondary,
+  margin: 0,
+});
 
 // Bottom info bar
 s1.addShape(pres.shapes.RECTANGLE, {
@@ -191,7 +189,329 @@ infoItems.forEach((item, i) => {
 });
 
 // ================================================================
-// SLIDE 2: Tier Progression + KPI Summary
+// SLIDE 2: Executive Summary — verdict + narrative + focus areas
+// ================================================================
+function buildExecSummary(d) {
+  const achieved = d.achievedTier || "";
+  const tierMatch = achieved.match(/Tier (\d+)/);
+  const tierNum = tierMatch ? parseInt(tierMatch[1], 10) : -1;
+  const tierNames = {
+    0: "Foundation",
+    1: "Basic",
+    2: "Intermediate",
+    3: "Advanced",
+    4: "Expert",
+  };
+  const total = d.criteria.length;
+  const passCt = d.criteria.filter((c) => c.status.includes("Pass")).length;
+  const failCt = d.criteria.filter((c) => c.status.includes("Below")).length;
+
+  // Focus areas: scoped to DEBMM Core criteria in the NEXT tier that are below 3.0.
+  // These are the immediate blockers to advancement — matches the tier-capping logic.
+  const nextTierName = tierNum >= 0 && tierNum < 4 ? tierNames[tierNum + 1] : tierNames[0];
+  const nextBlockers = d.criteria
+    .filter(
+      (c) =>
+        c.section === "DEBMM Core" &&
+        c.category === nextTierName &&
+        c.score < 3.0
+    )
+    .sort((a, b) => a.score - b.score);
+
+  // Other below-3.0 criteria (in tiers above next, or in enrichment) — surfaced in the count
+  // so the narrative is complete, but not shown in the headline focus list.
+  const otherBlockers = d.criteria
+    .filter((c) => c.score < 3.0 && !nextBlockers.includes(c))
+    .sort((a, b) => a.score - b.score);
+
+  let narrative;
+  let action;
+
+  if (tierNum === 4) {
+    narrative = `Top of the maturity model. All ${total} criteria meet or exceed the Defined threshold (3.0).`;
+    action = `Maintain optimization. Drive remaining scores toward 5.0 where strategic priorities apply.`;
+  } else if (tierNum >= 0) {
+    const nextNum = tierNum + 1;
+    const blockerCt = nextBlockers.length;
+    const otherCt = otherBlockers.length;
+    const otherSuffix =
+      otherCt > 0 ? ` (${otherCt} additional criterion below 3.0 in higher tiers.)` : "";
+
+    if (blockerCt === 0) {
+      narrative = `${achieved} achieved with all ${nextTierName} criteria above the Defined threshold. The next tier is unlocked by raising scores in higher-tier criteria.${otherSuffix}`;
+      action = `Strengthen higher-tier criteria to advance beyond Tier ${nextNum}: ${nextTierName}.`;
+    } else if (blockerCt === 1) {
+      narrative = `${achieved} achieved. A single ${nextTierName} criterion is below 3.0 — once it crosses the threshold, Tier ${nextNum}: ${nextTierName} unlocks.${otherSuffix}`;
+      action = `Focus the next quarter on the criterion below to unlock Tier ${nextNum}: ${nextTierName}.`;
+    } else {
+      narrative = `${achieved} achieved with ${passCt} of ${total} criteria meeting the Defined threshold. ${blockerCt} ${nextTierName} criteria below 3.0 are the immediate blockers to advancement.${otherSuffix}`;
+      action = `Bring the ${blockerCt} ${nextTierName} criteria below to ≥3.0 to unlock Tier ${nextNum}: ${nextTierName}.`;
+    }
+  } else {
+    const t0Blockers = d.criteria.filter(
+      (c) => c.section === "DEBMM Core" && c.category === "Foundation" && c.score < 3.0
+    );
+    narrative = `${achieved || "Below Foundation"} — ${failCt} criteria below 3.0 across the assessment. ${t0Blockers.length} Foundation criteria are the gating items.`;
+    action = `Prioritize Foundation criteria first: rule development, maintenance, roadmaps, threat modeling.`;
+  }
+
+  // The list shown on the slide IS scoped to next-tier blockers so it matches the narrative.
+  return {
+    achieved,
+    narrative,
+    action,
+    blockers: nextBlockers,
+    passCt,
+    failCt,
+    total,
+    tierNum,
+    nextTierName,
+  };
+}
+
+const exec = buildExecSummary(data);
+
+const sExec = pres.addSlide();
+sExec.background = { color: C.bgDark };
+
+// Top accent
+sExec.addShape(pres.shapes.RECTANGLE, {
+  x: 0,
+  y: 0,
+  w: 10,
+  h: 0.06,
+  fill: { color: C.cyan },
+});
+
+// Section label
+sExec.addText("EXECUTIVE SUMMARY", {
+  x: 0.6,
+  y: 0.25,
+  w: 8,
+  h: 0.3,
+  fontSize: 10,
+  fontFace: "Consolas",
+  color: C.textMuted,
+  charSpacing: 2,
+  margin: 0,
+});
+
+// Title
+sExec.addText("Where You Stand", {
+  x: 0.6,
+  y: 0.55,
+  w: 8,
+  h: 0.5,
+  fontSize: 24,
+  fontFace: "Calibri",
+  bold: true,
+  color: C.white,
+  margin: 0,
+});
+
+// ── Verdict card (top half, full width) ──
+const verdictY = 1.15;
+const verdictH = 1.25;
+sExec.addShape(pres.shapes.RECTANGLE, {
+  x: 0.6,
+  y: verdictY,
+  w: 8.8,
+  h: verdictH,
+  fill: { color: C.bgCard },
+  shadow: mkShadow(),
+});
+
+// Tier color accent strip on the left
+const verdictColor = (() => {
+  if (exec.tierNum === 4) return C.purple;
+  if (exec.tierNum === 3) return C.orange;
+  if (exec.tierNum === 2) return C.yellow;
+  if (exec.tierNum === 1) return C.blue;
+  if (exec.tierNum === 0) return C.green;
+  return C.red;
+})();
+sExec.addShape(pres.shapes.RECTANGLE, {
+  x: 0.6,
+  y: verdictY,
+  w: 0.1,
+  h: verdictH,
+  fill: { color: verdictColor },
+});
+
+// "ACHIEVED TIER" label
+sExec.addText("ACHIEVED TIER", {
+  x: 0.9,
+  y: verdictY + 0.12,
+  w: 4,
+  h: 0.22,
+  fontSize: 10,
+  fontFace: "Consolas",
+  color: C.textMuted,
+  charSpacing: 2,
+  margin: 0,
+});
+
+// Tier name (large)
+sExec.addText(exec.achieved || "Not Yet Achieved", {
+  x: 0.9,
+  y: verdictY + 0.32,
+  w: 7.8,
+  h: 0.6,
+  fontSize: 28,
+  fontFace: "Calibri",
+  bold: true,
+  color: verdictColor,
+  margin: 0,
+});
+
+// Score line
+sExec.addText(
+  `${overallScore.toFixed(2)} / 5.00   ·   ${exec.passCt} of ${exec.total} criteria above 3.0`,
+  {
+    x: 0.9,
+    y: verdictY + 0.92,
+    w: 7.8,
+    h: 0.28,
+    fontSize: 13,
+    fontFace: "Calibri",
+    color: C.textSecondary,
+    margin: 0,
+  }
+);
+
+// ── Narrative block ──
+sExec.addText(exec.narrative, {
+  x: 0.6,
+  y: verdictY + verdictH + 0.15,
+  w: 8.8,
+  h: 0.5,
+  fontSize: 11,
+  fontFace: "Calibri",
+  color: C.textPrimary,
+  margin: 0,
+});
+
+// ── Action / next step (highlighted) ──
+sExec.addText(`→ ${exec.action}`, {
+  x: 0.6,
+  y: verdictY + verdictH + 0.62,
+  w: 8.8,
+  h: 0.32,
+  fontSize: 11,
+  fontFace: "Calibri",
+  bold: true,
+  color: C.cyan,
+  margin: 0,
+});
+
+// ── Focus areas list (only if there are blockers in the next tier) ──
+const focusY = 3.4;
+if (exec.blockers.length > 0) {
+  sExec.addText(
+    `FOCUS AREAS — ${exec.nextTierName.toUpperCase()} CRITERIA TO ADDRESS`,
+    {
+      x: 0.6,
+      y: focusY,
+      w: 8.8,
+      h: 0.22,
+      fontSize: 9,
+      fontFace: "Consolas",
+      color: C.textMuted,
+      charSpacing: 2,
+      margin: 0,
+    }
+  );
+
+  // Show up to 3 next-tier blockers; remainder summarized in footnote
+  const focusItems = exec.blockers.slice(0, 3);
+  const itemH = 0.5;
+  focusItems.forEach((b, i) => {
+    const iy = focusY + 0.32 + i * itemH;
+    // Score pill
+    sExec.addShape(pres.shapes.RECTANGLE, {
+      x: 0.6,
+      y: iy + 0.05,
+      w: 0.55,
+      h: 0.22,
+      fill: { color: getScoreColor(b.score) },
+    });
+    sExec.addText(b.score.toFixed(2), {
+      x: 0.6,
+      y: iy + 0.05,
+      w: 0.55,
+      h: 0.22,
+      fontSize: 9,
+      fontFace: "Consolas",
+      bold: true,
+      color: C.bgDark,
+      align: "center",
+      valign: "middle",
+      margin: 0,
+    });
+    // Criterion name (line 1)
+    sExec.addText(b.criterion, {
+      x: 1.3,
+      y: iy + 0.02,
+      w: 8.0,
+      h: 0.24,
+      fontSize: 11,
+      fontFace: "Calibri",
+      bold: true,
+      color: C.textPrimary,
+      margin: 0,
+    });
+    // Target description (line 2) — what "Defined" looks like for this criterion
+    if (b.target) {
+      sExec.addText(`Target: ${b.target}`, {
+        x: 1.3,
+        y: iy + 0.24,
+        w: 8.0,
+        h: 0.22,
+        fontSize: 9,
+        fontFace: "Calibri",
+        color: C.textSecondary,
+        italic: true,
+        margin: 0,
+      });
+    }
+  });
+
+  // Footnote if list was truncated
+  if (exec.blockers.length > focusItems.length) {
+    const more = exec.blockers.length - focusItems.length;
+    sExec.addText(
+      `+ ${more} more — see Slide 4 for the full criteria breakdown.`,
+      {
+        x: 0.6,
+        y: focusY + 0.32 + focusItems.length * itemH + 0.05,
+        w: 8.8,
+        h: 0.22,
+        fontSize: 9,
+        fontFace: "Calibri",
+        italic: true,
+        color: C.textMuted,
+        margin: 0,
+      }
+    );
+  }
+} else {
+  sExec.addText(
+    `All ${exec.nextTierName} criteria meet the Defined threshold. Advancement requires raising scores in higher-tier criteria.`,
+    {
+      x: 0.6,
+      y: focusY + 0.2,
+      w: 8.8,
+      h: 0.6,
+      fontSize: 12,
+      fontFace: "Calibri",
+      color: C.green,
+      margin: 0,
+    }
+  );
+}
+
+// ================================================================
+// SLIDE 3: Tier Progression + KPI Summary
 // ================================================================
 const s2 = pres.addSlide();
 s2.background = { color: C.bgDark };
@@ -735,9 +1055,9 @@ s4.addText("People, Process & Governance", {
 
 // Enrichment as cards (2 columns x 3 rows)
 const enrCardW = 4.1;
-const enrCardH = 1.15;
-const enrGap = 0.2;
-const enrStartY = 1.1;
+const enrCardH = 1.0;
+const enrGap = 0.15;
+const enrStartY = 1.05;
 
 enrichment.forEach((c, i) => {
   const col = i % 2;

@@ -1,0 +1,37 @@
+name: lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Syntax-check Python
+        run: python -m compileall -q scorer/
+
+      - name: Syntax-check JavaScript
+        run: |
+          for f in scorer/*.js; do
+            echo "Checking $f"
+            node --check "$f"
+          done
+
+      - name: Validate YAML sources
+        run: |
+          python -c "import yaml; yaml.safe_load(open('rubric/rubric.yaml')); yaml.safe_load(open('questionnaire/questionnaire.yaml'))"
