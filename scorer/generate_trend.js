@@ -273,16 +273,23 @@ if (!hasMultiple) {
     return { x, y, score: entry.overallScore || 0, date: entry.date, tier: entry.achievedTier };
   });
 
-  // Connect points with lines
+  // Connect points with lines.
+  // PowerPoint chokes on shapes with negative width/height (the file opens
+  // but every reader since Office 2016 reports it as corrupted). When the
+  // trend is upward — score increasing means y decreasing — the naive
+  // (p2 - p1) delta goes negative, so we always draw with positive
+  // dimensions and use flipV to mirror the line vertically when needed.
   for (let i = 1; i < points.length; i++) {
     const p1 = points[i - 1];
     const p2 = points[i];
-    // Use a thin rectangle as a line approximation (pptxgenjs LINE is tricky for angled)
+    const w = p2.x - p1.x;
+    const dy = p2.y - p1.y;
     s1.addShape(pres.shapes.LINE, {
       x: p1.x,
-      y: p1.y,
-      w: p2.x - p1.x,
-      h: p2.y - p1.y,
+      y: dy >= 0 ? p1.y : p2.y,
+      w: w,
+      h: Math.abs(dy),
+      flipV: dy < 0,
       line: { color: C.cyan, width: 2.5 },
     });
   }
