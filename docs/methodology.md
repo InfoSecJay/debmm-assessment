@@ -86,8 +86,6 @@ The repo supports four equivalent ways to capture and score answers — see the 
 | **From spreadsheet** | filled `.xlsx` → `score.py --from-xlsx` | Score a completed spreadsheet without first extracting data |
 | **Printable markdown** | `questionnaire/questionnaire.md` | Pen-and-paper or workshop-style assessments |
 
-The **LLM-assisted scorer** (`scorer/llm_scorer.py`) layers on top of the YAML path to provide AI-generated improvement recommendations and inconsistency checks; it does not change the underlying scoring.
-
 ## Interpreting Results
 
 ### Score Ranges

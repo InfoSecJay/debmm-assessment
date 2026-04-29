@@ -17,6 +17,10 @@ baseline.json
 example-report.md
 example-results.json
 
+# Local samples folder — generated artifacts kept locally for re-use,
+# never committed (regenerate via the scorer/ scripts as needed).
+samples/
+
 # Node
 node_modules/
 

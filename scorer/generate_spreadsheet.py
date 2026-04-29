@@ -72,7 +72,7 @@ LEVEL_5_BG = "ECFDF5"
 
 # ── Font constants ────────────────────────────────────────────────────────────
 
-FN = "Aptos"  # Modern Excel 365 default; graceful fallback to Calibri
+FN = "Calibri"  # Default Excel font on every supported platform; renders identically across versions.
 
 FONT_TITLE = Font(name=FN, size=20, bold=True, color=WHITE)
 FONT_SUBTITLE = Font(name=FN, size=10, italic=True, color=BLUE_ACCENT)

@@ -25,71 +25,16 @@ const latest = history[history.length - 1];
 const prev = history.length >= 2 ? history[history.length - 2] : null;
 const hasMultiple = history.length >= 2;
 
-// ── Colors (matching generate_report.js) ──
-const C = {
-  bgDark: "0B1120",
-  bgCard: "111A2E",
-  bgCardAlt: "162038",
-  border: "1E2D4A",
-  textPrimary: "E2E8F0",
-  textSecondary: "8B9DC3",
-  textMuted: "5A6F94",
-  green: "10B981",
-  blue: "3B82F6",
-  yellow: "F59E0B",
-  orange: "F97316",
-  cyan: "06B6D4",
-  purple: "8B5CF6",
-  red: "EF4444",
-  white: "FFFFFF",
-};
-
-const tierColors = {
-  T0: C.green,
-  T1: C.blue,
-  T2: C.yellow,
-  T3: C.orange,
-  T4: C.purple,
-};
-
-function getScoreColor(score) {
-  if (score >= 4.5) return C.green;
-  if (score >= 3.5) return C.cyan;
-  if (score >= 3.0) return C.yellow;
-  if (score >= 2.0) return C.orange;
-  return C.red;
-}
-
-function getDeltaColor(delta) {
-  if (delta > 0.1) return C.green;
-  if (delta < -0.1) return C.red;
-  return C.textMuted;
-}
-
-function getDeltaArrow(delta) {
-  if (delta > 0.1) return "\u25B2"; // ▲
-  if (delta < -0.1) return "\u25BC"; // ▼
-  return "\u2014"; // —
-}
-
-function fmtScore(s) {
-  return s != null ? s.toFixed(2) : "N/A";
-}
-
-function fmtDelta(d) {
-  if (d == null) return "N/A";
-  const sign = d > 0 ? "+" : "";
-  return sign + d.toFixed(2);
-}
-
-const mkShadow = () => ({
-  type: "outer",
-  blur: 4,
-  offset: 2,
-  angle: 135,
-  color: "000000",
-  opacity: 0.3,
-});
+const {
+  C,
+  tierColors,
+  getScoreColor,
+  getDeltaColor,
+  getDeltaArrow,
+  fmtScore,
+  fmtDelta,
+  mkShadow,
+} = require("./_theme");
 
 // ── Build Presentation ──
 const pres = new pptxgen();
@@ -205,8 +150,6 @@ titleStats.forEach((item, i) => {
 // ================================================================
 const s1 = pres.addSlide();
 s1.background = { color: C.bgDark };
-
-// (Decorative MATURITY TREND eyebrow removed — title is enough)
 
 s1.addText("Score Trajectory", {
   x: 0.6,
@@ -417,9 +360,6 @@ if (!hasMultiple) {
       margin: 0,
     });
   });
-
-  // (Removed per-dot tier badges — they overlapped the 3.0 threshold label and the bottom strip's 'Tier changed' field already conveys the
-  // tier transition.)
 }
 
 // Bottom bar — current vs previous
@@ -484,8 +424,6 @@ s1Stats.forEach((st, i) => {
 // ================================================================
 const s2 = pres.addSlide();
 s2.background = { color: C.bgDark };
-
-// (Decorative TIER BREAKDOWN eyebrow removed)
 
 s2.addText("Per-Tier Score Trends", {
   x: 0.6,
@@ -733,8 +671,6 @@ s2Stats.forEach((st, i) => {
 // ================================================================
 const s3 = pres.addSlide();
 s3.background = { color: C.bgDark };
-
-// (Decorative CRITERIA CHANGES eyebrow removed)
 
 s3.addText(
   hasMultiple ? "Improvements & Focus Areas" : "Current Criteria Scores",

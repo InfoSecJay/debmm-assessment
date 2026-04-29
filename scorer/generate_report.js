@@ -27,62 +27,14 @@ const enrichment = criteria.filter((c) => c.section === "Enrichment");
 const passing = criteria.filter((c) => c.status.includes("Pass")).length;
 const failing = criteria.filter((c) => c.status.includes("Below")).length;
 
-// ── Colors ──
-const C = {
-  bgDark: "0B1120",
-  bgCard: "111A2E",
-  bgCardAlt: "162038",
-  border: "1E2D4A",
-  textPrimary: "E2E8F0",
-  textSecondary: "8B9DC3",
-  textMuted: "5A6F94",
-  green: "10B981",
-  blue: "3B82F6",
-  yellow: "F59E0B",
-  orange: "F97316",
-  cyan: "06B6D4",
-  purple: "8B5CF6",
-  red: "EF4444",
-  white: "FFFFFF",
-};
-
-const tierColors = {
-  T0: C.green,
-  T1: C.blue,
-  T2: C.yellow,
-  T3: C.orange,
-  T4: C.purple,
-};
-
-const levelColors = {
-  Optimized: C.green,
-  Managed: C.blue,
-  Defined: C.yellow,
-  Repeatable: C.orange,
-  Initial: C.red,
-};
-
-function getLevelColor(level) {
-  return levelColors[level] || C.textMuted;
-}
-
-function getScoreColor(score) {
-  if (score >= 4.5) return C.green;
-  if (score >= 3.5) return C.cyan;
-  if (score >= 3.0) return C.yellow;
-  if (score >= 2.0) return C.orange;
-  return C.red;
-}
-
-// Fresh shadow factory (pptxgenjs mutates objects)
-const mkShadow = () => ({
-  type: "outer",
-  blur: 4,
-  offset: 2,
-  angle: 135,
-  color: "000000",
-  opacity: 0.3,
-});
+const {
+  C,
+  tierColors,
+  levelColors,
+  getLevelColor,
+  getScoreColor,
+  mkShadow,
+} = require("./_theme");
 
 // ── Build Presentation ──
 const pres = new pptxgen();
@@ -91,13 +43,12 @@ pres.author = assessor;
 pres.title = "DEBMM Assessment Report";
 
 // ================================================================
-// SLIDE 1: Title Slide
+// SLIDE 1: Title
 // ================================================================
-const s1 = pres.addSlide();
-s1.background = { color: C.bgDark };
+const slideTitle = pres.addSlide();
+slideTitle.background = { color: C.bgDark };
 
-// Kicker (subdued lead-in, not a decorative monospace eyebrow)
-s1.addText("Detection Engineering Maturity Assessment", {
+slideTitle.addText("Detection Engineering Maturity Assessment", {
   x: 0.6,
   y: 1.4,
   w: 8.8,
@@ -109,7 +60,7 @@ s1.addText("Detection Engineering Maturity Assessment", {
 });
 
 // Main title
-s1.addText("DEBMM Assessment Report", {
+slideTitle.addText("DEBMM Assessment Report", {
   x: 0.6,
   y: 1.75,
   w: 8.8,
@@ -123,7 +74,7 @@ s1.addText("DEBMM Assessment Report", {
 
 // Subtitle — org and date
 const subtitleParts = [org || "Organization", assessDate].filter(Boolean);
-s1.addText(subtitleParts.join("  ·  "), {
+slideTitle.addText(subtitleParts.join("  ·  "), {
   x: 0.6,
   y: 2.5,
   w: 8.8,
@@ -135,7 +86,7 @@ s1.addText(subtitleParts.join("  ·  "), {
 });
 
 // Bottom info bar
-s1.addShape(pres.shapes.RECTANGLE, {
+slideTitle.addShape(pres.shapes.RECTANGLE, {
   x: 0,
   y: 4.6,
   w: 10,
@@ -155,7 +106,7 @@ const infoItems = [
 
 infoItems.forEach((item, i) => {
   const ix = 0.6 + i * 2.35;
-  s1.addText(item.label, {
+  slideTitle.addText(item.label, {
     x: ix,
     y: 4.72,
     w: 2.2,
@@ -166,7 +117,7 @@ infoItems.forEach((item, i) => {
     color: C.textMuted,
     margin: 0,
   });
-  s1.addText(item.value, {
+  slideTitle.addText(item.value, {
     x: ix,
     y: 4.98,
     w: 2.2,
@@ -180,7 +131,7 @@ infoItems.forEach((item, i) => {
 });
 
 // ================================================================
-// SLIDE 2: Executive Summary — verdict + narrative + focus areas
+// SLIDE 2: Executive Summary
 // ================================================================
 function buildExecSummary(d) {
   const achieved = d.achievedTier || "";
@@ -276,11 +227,10 @@ function buildExecSummary(d) {
 
 const exec = buildExecSummary(data);
 
-const sExec = pres.addSlide();
-sExec.background = { color: C.bgDark };
+const slideExec = pres.addSlide();
+slideExec.background = { color: C.bgDark };
 
-// Title (compact — single line, paired with takeaway banner below)
-sExec.addText("Executive Summary", {
+slideExec.addText("Executive Summary", {
   x: 0.6,
   y: 0.25,
   w: 8,
@@ -297,21 +247,21 @@ sExec.addText("Executive Summary", {
 // the banner stays under 0.75" and leaves room for the full-height cards below.
 const narrativeY = 0.75;
 const narrativeH = 0.78;
-sExec.addShape(pres.shapes.RECTANGLE, {
+slideExec.addShape(pres.shapes.RECTANGLE, {
   x: 0.6,
   y: narrativeY,
   w: 8.8,
   h: narrativeH,
   fill: { color: C.bgCard },
 });
-sExec.addShape(pres.shapes.RECTANGLE, {
+slideExec.addShape(pres.shapes.RECTANGLE, {
   x: 0.6,
   y: narrativeY,
   w: 0.08,
   h: narrativeH,
   fill: { color: tierAccentColor(exec.tierNum) },
 });
-sExec.addText(exec.narrative, {
+slideExec.addText(exec.narrative, {
   x: 0.85,
   y: narrativeY + 0.06,
   w: 8.45,
@@ -358,14 +308,14 @@ function drawHeroColumn(slide, x, y, w, h, accent, label, contentFn) {
 }
 
 // Column 1 — Maturity (Verdict)
-drawHeroColumn(sExec, heroLeftX, heroY, heroColW, heroH, verdictColor, "Maturity", (cx, cy, cw) => {
+drawHeroColumn(slideExec, heroLeftX, heroY, heroColW, heroH, verdictColor, "Maturity", (cx, cy, cw) => {
   // Tier badge: large name in tier color
-  sExec.addText(exec.achieved || "Not Yet Achieved", {
+  slideExec.addText(exec.achieved || "Not Yet Achieved", {
     x: cx, y: cy, w: cw, h: 0.5,
     fontSize: 22, fontFace: "Calibri", bold: true, color: verdictColor, margin: 0,
   });
   // Score
-  sExec.addText(`${overallScore.toFixed(2)} / 5.00`, {
+  slideExec.addText(`${overallScore.toFixed(2)} / 5.00`, {
     x: cx, y: cy + 0.50, w: cw, h: 0.28,
     fontSize: 14, fontFace: "Calibri", color: C.textPrimary, margin: 0,
   });
@@ -388,20 +338,20 @@ drawHeroColumn(sExec, heroLeftX, heroY, heroColW, heroH, verdictColor, "Maturity
     // Connector line to next dot (drawn before the dot so the dot sits on top)
     if (t < stepCount - 1) {
       const lineColor = (t < exec.tierNum) ? tierAccentColor(t) : C.bgCardAlt;
-      sExec.addShape(pres.shapes.RECTANGLE, {
+      slideExec.addShape(pres.shapes.RECTANGLE, {
         x: sx + stepRadius * 2, y: stepperY + stepRadius - 0.015,
         w: stepGap, h: 0.03,
         fill: { color: lineColor },
       });
     }
     // Dot
-    sExec.addShape(pres.shapes.OVAL, {
+    slideExec.addShape(pres.shapes.OVAL, {
       x: sx, y: stepperY,
       w: stepRadius * 2, h: stepRadius * 2,
       fill: { color: dotColor },
     });
     // T0..T4 label below
-    sExec.addText(`T${t}`, {
+    slideExec.addText(`T${t}`, {
       x: sx - 0.08, y: stepperY + stepRadius * 2 + 0.06, w: stepRadius * 2 + 0.16, h: 0.2,
       fontSize: 9, fontFace: "Calibri", color: textColor, align: "center", margin: 0,
     });
@@ -409,13 +359,13 @@ drawHeroColumn(sExec, heroLeftX, heroY, heroColW, heroH, verdictColor, "Maturity
 });
 
 // Column 2 — Coverage (Implications)
-drawHeroColumn(sExec, heroLeftX + heroColW + heroGap, heroY, heroColW, heroH, C.cyan, "Coverage", (cx, cy, cw) => {
+drawHeroColumn(slideExec, heroLeftX + heroColW + heroGap, heroY, heroColW, heroH, C.cyan, "Coverage", (cx, cy, cw) => {
   // Big stat
-  sExec.addText(`${exec.passCt} of ${exec.total}`, {
+  slideExec.addText(`${exec.passCt} of ${exec.total}`, {
     x: cx, y: cy, w: cw, h: 0.5,
     fontSize: 22, fontFace: "Calibri", bold: true, color: C.textPrimary, margin: 0,
   });
-  sExec.addText("criteria meet the Defined threshold", {
+  slideExec.addText("criteria meet the Defined threshold", {
     x: cx, y: cy + 0.50, w: cw, h: 0.22,
     fontSize: 10, fontFace: "Calibri", italic: true, color: C.textMuted, margin: 0,
   });
@@ -423,22 +373,22 @@ drawHeroColumn(sExec, heroLeftX + heroColW + heroGap, heroY, heroColW, heroH, C.
   const pct = exec.total > 0 ? exec.passCt / exec.total : 0;
   const barY = cy + 0.85;
   const barH = 0.16;
-  sExec.addShape(pres.shapes.RECTANGLE, {
+  slideExec.addShape(pres.shapes.RECTANGLE, {
     x: cx, y: barY, w: cw, h: barH,
     fill: { color: C.bgDark },
   });
-  sExec.addShape(pres.shapes.RECTANGLE, {
+  slideExec.addShape(pres.shapes.RECTANGLE, {
     x: cx, y: barY, w: cw * pct, h: barH,
     fill: { color: C.cyan },
   });
   // Percentage label
-  sExec.addText(`${Math.round(pct * 100)}%`, {
+  slideExec.addText(`${Math.round(pct * 100)}%`, {
     x: cx, y: barY + barH + 0.04, w: cw, h: 0.22,
     fontSize: 11, fontFace: "Calibri", bold: true, color: C.cyan, margin: 0,
   });
   // Failing count caption (right-aligned next to the percentage)
   if (exec.failCt > 0) {
-    sExec.addText(
+    slideExec.addText(
       `${exec.failCt} ${exec.failCt === 1 ? "criterion" : "criteria"} below threshold`,
       {
         x: cx, y: barY + barH + 0.04, w: cw, h: 0.22,
@@ -447,7 +397,7 @@ drawHeroColumn(sExec, heroLeftX + heroColW + heroGap, heroY, heroColW, heroH, C.
     );
   } else {
     // 100% case — fill the right-hand area with a green confirmation so the row isn't half-empty
-    sExec.addText("All criteria above 3.0", {
+    slideExec.addText("All criteria above 3.0", {
       x: cx, y: barY + barH + 0.04, w: cw, h: 0.22,
       fontSize: 10, fontFace: "Calibri", italic: true, color: C.green, align: "right", margin: 0,
     });
@@ -455,12 +405,12 @@ drawHeroColumn(sExec, heroLeftX + heroColW + heroGap, heroY, heroColW, heroH, C.
 });
 
 // Column 3 — Next tier (Next step)
-drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, heroH, C.cyan, "Next tier", (cx, cy, cw) => {
+drawHeroColumn(slideExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, heroH, C.cyan, "Next tier", (cx, cy, cw) => {
   const headline = exec.tierNum >= 0 && exec.tierNum < 4
     ? `Tier ${exec.tierNum + 1}: ${exec.nextTierName}`
     : exec.tierNum === 4 ? "All tiers achieved" : "Reach Foundation";
   // Headline: target tier name
-  sExec.addText(headline, {
+  slideExec.addText(headline, {
     x: cx, y: cy, w: cw, h: 0.5,
     fontSize: 18, fontFace: "Calibri", bold: true, color: C.cyan, margin: 0,
   });
@@ -491,12 +441,12 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
 
   // Visual: numeric badge + caption row (parallels the stat layout in the other cards)
   if (badgeNum) {
-    sExec.addText(badgeNum, {
+    slideExec.addText(badgeNum, {
       x: cx, y: cy + 0.55, w: 0.7, h: 0.55,
       fontSize: 32, fontFace: "Calibri", bold: true, color: badgeColor,
       align: "left", valign: "middle", margin: 0,
     });
-    sExec.addText(
+    slideExec.addText(
       blockerCt === 1
         ? `${exec.nextTierName || "Foundation"} criterion below threshold`
         : `${exec.nextTierName || "Foundation"} criteria below threshold`,
@@ -509,7 +459,7 @@ drawHeroColumn(sExec, heroLeftX + 2 * (heroColW + heroGap), heroY, heroColW, her
   }
 
   // Body explainer at the bottom
-  sExec.addText(unlockText, {
+  slideExec.addText(unlockText, {
     x: cx, y: cy + 1.18, w: cw, h: 0.30,
     fontSize: 10, fontFace: "Calibri", color: C.textPrimary, margin: 0,
   });
@@ -580,7 +530,7 @@ const execColW = 4.3;
 const execRightX = execLeftX + execColW + 0.2;
 
 if (exec.blockers.length > 0) {
-  sExec.addText(
+  slideExec.addText(
     `Focus areas — ${exec.nextTierName} criteria to address`,
     {
       x: execLeftX,
@@ -601,12 +551,12 @@ if (exec.blockers.length > 0) {
     // Take only the first measurable clause from the rubric's level-3 target so it
     // fits on a single line in the narrower two-column layout.
     const targetSummary = b.target ? b.target.split(";")[0].trim().replace(/\.$/, "") : "";
-    drawListItem(sExec, b, iy, execLeftX, execColW, {
+    drawListItem(slideExec, b, iy, execLeftX, execColW, {
       subline: targetSummary ? `Target: ${targetSummary}` : "",
     });
   });
 } else {
-  sExec.addText(
+  slideExec.addText(
     `All ${exec.nextTierName} criteria meet the Defined threshold.`,
     {
       x: execLeftX,
@@ -623,7 +573,7 @@ if (exec.blockers.length > 0) {
 
 // Right column — Current Strengths
 if (exec.strengths.length > 0) {
-  sExec.addText("Current strengths — top performers", {
+  slideExec.addText("Current strengths — top performers", {
     x: execRightX,
     y: focusY,
     w: execColW,
@@ -638,20 +588,19 @@ if (exec.strengths.length > 0) {
   const strengthItems = exec.strengths.slice(0, colMaxItems);
   strengthItems.forEach((s, i) => {
     const iy = focusY + 0.32 + i * colItemH;
-    drawListItem(sExec, s, iy, execRightX, execColW, {
+    drawListItem(slideExec, s, iy, execRightX, execColW, {
       subline: s.category,
     });
   });
 }
 
 // ================================================================
-// SLIDE 3: Tier Progression + KPI Summary
+// SLIDE 3: Tier Overview
 // ================================================================
-const s2 = pres.addSlide();
-s2.background = { color: C.bgDark };
+const slideTiers = pres.addSlide();
+slideTiers.background = { color: C.bgDark };
 
-// Title (decorative section label and cyan top bar removed)
-s2.addText("DEBMM Tier Overview", {
+slideTiers.addText("DEBMM Tier Overview", {
   x: 0.6,
   y: 0.25,
   w: 8,
@@ -664,7 +613,7 @@ s2.addText("DEBMM Tier Overview", {
 });
 
 // Explanatory subtitle so the reader knows what they're looking at
-s2.addText(
+slideTiers.addText(
   "Five progressive tiers from Foundation to Expert. A tier is achieved only when every criterion in that tier and below scores at least 3.0 (Defined level).",
   {
     x: 0.6,
@@ -691,7 +640,7 @@ tiers.forEach((t, i) => {
   const tc = tierColors[t.id] || C.textMuted;
 
   // Card background
-  s2.addShape(pres.shapes.RECTANGLE, {
+  slideTiers.addShape(pres.shapes.RECTANGLE, {
     x: cx,
     y: cardY,
     w: cardW,
@@ -701,7 +650,7 @@ tiers.forEach((t, i) => {
   });
 
   // Top color accent
-  s2.addShape(pres.shapes.RECTANGLE, {
+  slideTiers.addShape(pres.shapes.RECTANGLE, {
     x: cx,
     y: cardY,
     w: cardW,
@@ -710,7 +659,7 @@ tiers.forEach((t, i) => {
   });
 
   // Tier label
-  s2.addText(`${t.id} — ${t.name}`, {
+  slideTiers.addText(`${t.id} — ${t.name}`, {
     x: cx + 0.12,
     y: cardY + 0.15,
     w: cardW - 0.24,
@@ -722,7 +671,7 @@ tiers.forEach((t, i) => {
   });
 
   // Score
-  s2.addText(t.score.toFixed(2), {
+  slideTiers.addText(t.score.toFixed(2), {
     x: cx + 0.12,
     y: cardY + 0.38,
     w: cardW - 0.24,
@@ -735,7 +684,7 @@ tiers.forEach((t, i) => {
   });
 
   // Level
-  s2.addText(t.level, {
+  slideTiers.addText(t.level, {
     x: cx + 0.12,
     y: cardY + 0.78,
     w: cardW - 0.24,
@@ -747,7 +696,7 @@ tiers.forEach((t, i) => {
   });
 
   // Progress bar background
-  s2.addShape(pres.shapes.RECTANGLE, {
+  slideTiers.addShape(pres.shapes.RECTANGLE, {
     x: cx + 0.12,
     y: cardY + 1.1,
     w: cardW - 0.24,
@@ -757,7 +706,7 @@ tiers.forEach((t, i) => {
 
   // Progress bar fill
   const pct = Math.min(t.score / 5, 1);
-  s2.addShape(pres.shapes.RECTANGLE, {
+  slideTiers.addShape(pres.shapes.RECTANGLE, {
     x: cx + 0.12,
     y: cardY + 1.1,
     w: (cardW - 0.24) * pct,
@@ -766,7 +715,7 @@ tiers.forEach((t, i) => {
   });
 
   // Progression status
-  s2.addText(t.progression, {
+  slideTiers.addText(t.progression, {
     x: cx + 0.12,
     y: cardY + 1.24,
     w: cardW - 0.24,
@@ -780,7 +729,7 @@ tiers.forEach((t, i) => {
 
 // ── Bottom section: Summary stats ──
 const statY = 3.05;
-s2.addText("Assessment summary", {
+slideTiers.addText("Assessment summary", {
   x: 0.6,
   y: statY,
   w: 8,
@@ -838,7 +787,7 @@ summCards.forEach((sc, i) => {
   const sx = 0.6 + i * (scW + scGap);
   const sy = statY + 0.35;
 
-  s2.addShape(pres.shapes.RECTANGLE, {
+  slideTiers.addShape(pres.shapes.RECTANGLE, {
     x: sx,
     y: sy,
     w: scW,
@@ -847,7 +796,7 @@ summCards.forEach((sc, i) => {
     shadow: mkShadow(),
   });
 
-  s2.addText(sc.label, {
+  slideTiers.addText(sc.label, {
     x: sx + 0.1,
     y: sy + 0.1,
     w: scW - 0.2,
@@ -861,7 +810,7 @@ summCards.forEach((sc, i) => {
 
   // Auto-size: shrink font if value text is long
   const valFontSize = sc.value.length > 10 ? 13 : sc.value.length > 6 ? 18 : 24;
-  s2.addText(sc.value, {
+  slideTiers.addText(sc.value, {
     x: sx + 0.1,
     y: sy + 0.32,
     w: scW - 0.2,
@@ -875,7 +824,7 @@ summCards.forEach((sc, i) => {
   });
 
   if (sc.sub) {
-    s2.addText(sc.sub, {
+    slideTiers.addText(sc.sub, {
       x: sx + 0.1,
       y: sy + 0.75,
       w: scW - 0.2,
@@ -888,17 +837,13 @@ summCards.forEach((sc, i) => {
   }
 });
 
-// (Removed redundant bottom "TIER PROGRESSION" footer — the top tier cards
-// already convey Complete / Current / In Progress per tier.)
-
 // ================================================================
-// SLIDE 3: DEBMM Core Criteria Detail
+// SLIDE 4: Core Criteria Breakdown
 // ================================================================
-const s3 = pres.addSlide();
-s3.background = { color: C.bgDark };
+const slideCore = pres.addSlide();
+slideCore.background = { color: C.bgDark };
 
-// Title (decorative section label and cyan top bar removed)
-s3.addText("Core Criteria Breakdown", {
+slideCore.addText("Core Criteria Breakdown", {
   x: 0.6,
   y: 0.25,
   w: 8,
@@ -911,7 +856,7 @@ s3.addText("Core Criteria Breakdown", {
 });
 
 // Explanatory subtitle
-s3.addText(
+slideCore.addText(
   "All 18 DEBMM core criteria with score, maturity level, and pass/fail. Rows in red are below the 3.0 threshold and prevent tier advancement.",
   {
     x: 0.6,
@@ -933,7 +878,7 @@ const colLabels = ["Criterion", "Category", "Level", "Score", "Bar", "Status"];
 const colW = [2.6, 2.4, 1.1, 0.95, 0.95, 0.8];
 
 // Header background
-s3.addShape(pres.shapes.RECTANGLE, {
+slideCore.addShape(pres.shapes.RECTANGLE, {
   x: 0.5,
   y: tblHeaderY,
   w: 9.0,
@@ -942,7 +887,7 @@ s3.addShape(pres.shapes.RECTANGLE, {
 });
 
 colLabels.forEach((lbl, i) => {
-  s3.addText(lbl, {
+  slideCore.addText(lbl, {
     x: colX[i],
     y: tblHeaderY + 0.02,
     w: colW[i],
@@ -966,7 +911,7 @@ debmmCore.forEach((c, i) => {
 
   // Alternating row bg
   if (i % 2 === 0) {
-    s3.addShape(pres.shapes.RECTANGLE, {
+    slideCore.addShape(pres.shapes.RECTANGLE, {
       x: 0.5,
       y: ry - 0.02,
       w: 9.0,
@@ -976,7 +921,7 @@ debmmCore.forEach((c, i) => {
   }
 
   // Criterion name
-  s3.addText(c.criterion, {
+  slideCore.addText(c.criterion, {
     x: colX[0],
     y: ry,
     w: colW[0],
@@ -988,7 +933,7 @@ debmmCore.forEach((c, i) => {
   });
 
   // Category
-  s3.addText(c.category, {
+  slideCore.addText(c.category, {
     x: colX[1],
     y: ry,
     w: colW[1],
@@ -1000,14 +945,14 @@ debmmCore.forEach((c, i) => {
   });
 
   // Level badge
-  s3.addShape(pres.shapes.RECTANGLE, {
+  slideCore.addShape(pres.shapes.RECTANGLE, {
     x: colX[2],
     y: ry + 0.02,
     w: 0.95,
     h: 0.18,
     fill: { color: C.bgCardAlt },
   });
-  s3.addText(c.level, {
+  slideCore.addText(c.level, {
     x: colX[2],
     y: ry + 0.02,
     w: 0.95,
@@ -1022,7 +967,7 @@ debmmCore.forEach((c, i) => {
   });
 
   // Score
-  s3.addText(c.score.toFixed(2), {
+  slideCore.addText(c.score.toFixed(2), {
     x: colX[3],
     y: ry,
     w: colW[3],
@@ -1037,14 +982,14 @@ debmmCore.forEach((c, i) => {
 
   // Score bar
   const barW = 0.85;
-  s3.addShape(pres.shapes.RECTANGLE, {
+  slideCore.addShape(pres.shapes.RECTANGLE, {
     x: colX[4],
     y: ry + 0.07,
     w: barW,
     h: 0.08,
     fill: { color: C.bgDark },
   });
-  s3.addShape(pres.shapes.RECTANGLE, {
+  slideCore.addShape(pres.shapes.RECTANGLE, {
     x: colX[4],
     y: ry + 0.07,
     w: barW * Math.min(c.score / 5, 1),
@@ -1053,7 +998,7 @@ debmmCore.forEach((c, i) => {
   });
 
   // Status icon
-  s3.addText(isBelow ? "✗" : "✓", {
+  slideCore.addText(isBelow ? "✗" : "✓", {
     x: colX[5],
     y: ry,
     w: colW[5],
@@ -1068,13 +1013,12 @@ debmmCore.forEach((c, i) => {
 });
 
 // ================================================================
-// SLIDE 4: Enrichment Criteria
+// SLIDE 5: Enrichment
 // ================================================================
-const s4 = pres.addSlide();
-s4.background = { color: C.bgDark };
+const slideEnrichment = pres.addSlide();
+slideEnrichment.background = { color: C.bgDark };
 
-// Title (decorative section label and cyan top bar removed)
-s4.addText("People, Process & Governance", {
+slideEnrichment.addText("People, Process & Governance", {
   x: 0.6,
   y: 0.25,
   w: 8,
@@ -1087,7 +1031,7 @@ s4.addText("People, Process & Governance", {
 });
 
 // Explanatory subtitle
-s4.addText(
+slideEnrichment.addText(
   "Six organizational dimensions enriching the DEBMM core. These shape what detection-engineering behaviors are possible but do not affect tier determination.",
   {
     x: 0.6,
@@ -1117,7 +1061,7 @@ enrichment.forEach((c, i) => {
   const lc = getLevelColor(c.level);
 
   // Card bg
-  s4.addShape(pres.shapes.RECTANGLE, {
+  slideEnrichment.addShape(pres.shapes.RECTANGLE, {
     x: cx,
     y: cy,
     w: enrCardW,
@@ -1127,7 +1071,7 @@ enrichment.forEach((c, i) => {
   });
 
   // Left accent
-  s4.addShape(pres.shapes.RECTANGLE, {
+  slideEnrichment.addShape(pres.shapes.RECTANGLE, {
     x: cx,
     y: cy,
     w: 0.06,
@@ -1136,7 +1080,7 @@ enrichment.forEach((c, i) => {
   });
 
   // Category label
-  s4.addText(c.category, {
+  slideEnrichment.addText(c.category, {
     x: cx + 0.2,
     y: cy + 0.1,
     w: enrCardW - 1.2,
@@ -1149,7 +1093,7 @@ enrichment.forEach((c, i) => {
   });
 
   // Criterion name
-  s4.addText(c.criterion, {
+  slideEnrichment.addText(c.criterion, {
     x: cx + 0.2,
     y: cy + 0.3,
     w: enrCardW - 1.2,
@@ -1162,14 +1106,14 @@ enrichment.forEach((c, i) => {
   });
 
   // Level badge
-  s4.addShape(pres.shapes.RECTANGLE, {
+  slideEnrichment.addShape(pres.shapes.RECTANGLE, {
     x: cx + 0.2,
     y: cy + 0.65,
     w: 0.8,
     h: 0.22,
     fill: { color: C.bgCardAlt },
   });
-  s4.addText(c.level, {
+  slideEnrichment.addText(c.level, {
     x: cx + 0.2,
     y: cy + 0.65,
     w: 0.8,
@@ -1184,7 +1128,7 @@ enrichment.forEach((c, i) => {
   });
 
   // Status text
-  s4.addText(c.status, {
+  slideEnrichment.addText(c.status, {
     x: cx + 1.1,
     y: cy + 0.65,
     w: 1.2,
@@ -1197,7 +1141,7 @@ enrichment.forEach((c, i) => {
   });
 
   // Score (big, right side)
-  s4.addText(c.score.toFixed(2), {
+  slideEnrichment.addText(c.score.toFixed(2), {
     x: cx + enrCardW - 1.1,
     y: cy + 0.15,
     w: 0.95,
@@ -1212,14 +1156,14 @@ enrichment.forEach((c, i) => {
   });
 
   // Score bar
-  s4.addShape(pres.shapes.RECTANGLE, {
+  slideEnrichment.addShape(pres.shapes.RECTANGLE, {
     x: cx + enrCardW - 1.1,
     y: cy + 0.78,
     w: 0.9,
     h: 0.08,
     fill: { color: C.bgDark },
   });
-  s4.addShape(pres.shapes.RECTANGLE, {
+  slideEnrichment.addShape(pres.shapes.RECTANGLE, {
     x: cx + enrCardW - 1.1,
     y: cy + 0.78,
     w: 0.9 * Math.min(c.score / 5, 1),
@@ -1230,7 +1174,7 @@ enrichment.forEach((c, i) => {
 
 // Bottom summary bar
 const enrBarY = 4.6;
-s4.addShape(pres.shapes.RECTANGLE, {
+slideEnrichment.addShape(pres.shapes.RECTANGLE, {
   x: 0,
   y: enrBarY,
   w: 10,
@@ -1267,7 +1211,7 @@ const enrStats = [
 
 enrStats.forEach((st, i) => {
   const sx = 0.6 + i * 2.35;
-  s4.addText(st.label, {
+  slideEnrichment.addText(st.label, {
     x: sx,
     y: enrBarY + 0.15,
     w: 2.1,
@@ -1278,7 +1222,7 @@ enrStats.forEach((st, i) => {
     color: C.textMuted,
     margin: 0,
   });
-  s4.addText(st.value, {
+  slideEnrichment.addText(st.value, {
     x: sx,
     y: enrBarY + 0.4,
     w: 2.1,

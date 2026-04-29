@@ -25,22 +25,28 @@ Each criterion is scored on a 1–5 maturity scale (Initial → Optimized). The 
 
 The same template handles self-assessments and external audits. Every question has an **Evidence / Notes** column: leave it blank for self-assessments, or fill it in to document the basis for each rating during an audit.
 
+### Limitations
+
+- **Self-report bias.** The default mode is a manager rating their own team. Use the audit mode and Evidence column for any score you'll defend externally.
+- **Excel-bound.** Tier and level formulas evaluate inside Microsoft Excel. The README's `Save the file in Excel` step is non-optional — LibreOffice and Sheets evaluate some formulas differently.
+- **No automated test suite yet** for the Python scoring helpers. The CI workflow only syntax-checks Python and JavaScript.
+
 ## Screenshots
 
 ### Executive deck
 
 The 5-slide PowerPoint generated from a completed assessment.
 
-![DEBMM Executive Summary slide — tier verdict, coverage progress bar, next-tier unlock, and focus areas](docs/screenshots/report/Slide2.JPG)
+![Executive Summary slide](docs/screenshots/report/Slide2.JPG)
 
 <table>
   <tr>
-    <td width="50%" align="center"><img src="docs/screenshots/report/Slide1.JPG" alt="Title slide with overall score, achieved tier, and pass/fail summary"><br><sub><b>Title</b> — overall score, tier, pass/fail summary</sub></td>
-    <td width="50%" align="center"><img src="docs/screenshots/report/Slide3.JPG" alt="DEBMM Tier Overview — five tier KPI cards"><br><sub><b>Tier Overview</b> — five tier KPI cards with progression status</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/report/Slide1.JPG" alt="Title slide"><br><sub><b>Title</b> — overall score, tier, pass/fail summary</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/report/Slide3.JPG" alt="Tier Overview slide"><br><sub><b>Tier Overview</b> — five tier KPI cards with progression status</sub></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><img src="docs/screenshots/report/Slide4.JPG" alt="Core Criteria Breakdown — table of all 18 DEBMM criteria"><br><sub><b>Core Criteria</b> — all 18 criteria, failing rows in red</sub></td>
-    <td width="50%" align="center"><img src="docs/screenshots/report/Slide5.JPG" alt="People, Process & Governance enrichment dimensions"><br><sub><b>Enrichment</b> — People, Process & Governance dimensions</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/report/Slide4.JPG" alt="Core Criteria Breakdown slide"><br><sub><b>Core Criteria</b> — all 18 criteria, failing rows in red</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/report/Slide5.JPG" alt="Enrichment slide"><br><sub><b>Enrichment</b> — People, Process & Governance dimensions</sub></td>
   </tr>
 </table>
 
@@ -48,7 +54,7 @@ The 5-slide PowerPoint generated from a completed assessment.
 
 The Excel input. 46 dropdown answers across 7 tabs; auto-scoring drives every downstream tab and report.
 
-![Assessment tab in Excel showing dropdown-driven scoring](docs/screenshots/spreadsheet/Spreadsheet1.jpg)
+![Assessment tab in Excel](docs/screenshots/spreadsheet/Spreadsheet1.jpg)
 
 ### Trend deck
 
@@ -73,7 +79,7 @@ A 4-slide PowerPoint generated from the rolling history file, run after each mon
 
 ```bash
 # Clone and install
-git clone https://github.com/<your-org>/debmm-assessment.git
+git clone https://github.com/InfoSecJay/debmm-assessment.git
 cd debmm-assessment
 pip install -r scorer/requirements.txt
 npm install
@@ -86,11 +92,11 @@ Open `templates/debmm-assessment.xlsx` in Excel and fill in your organization de
 
 | Tab | Purpose |
 |-----|---------|
-| **Instructions** | Overview and maturity-level definitions |
+| **Cover** | Engagement metadata pulled from the Assessment tab (org, assessor, date, version, classification) |
+| **Instructions** | Overview, maturity-level definitions, and the per-question scoring convention |
 | **Assessment** | Org details and all 46 questions |
 | **Results Dashboard** | Auto-calculated scores, tier determination, color-coded heatmap |
-| **Tier Scores Chart** | DEBMM core tier bar chart |
-| **Readiness Chart** | Organizational readiness bar chart |
+| **Maturity Profile** | Radar chart spanning all five DEBMM tiers and both enrichment dimensions |
 | **Rubric Reference** | Full rubric for reference while answering |
 | **Report Data** | Flat data export for Power BI / report generation |
 
