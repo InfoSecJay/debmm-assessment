@@ -50,6 +50,19 @@ The Excel input. 46 dropdown answers across 7 tabs; auto-scoring drives every do
 
 ![Assessment tab in Excel showing dropdown-driven scoring](docs/screenshots/spreadsheet/Spreadsheet1.jpg)
 
+### Trend deck
+
+A 4-slide PowerPoint generated from the rolling history file, run after each monthly assessment.
+
+<table>
+  <tr>
+    <td width="25%" align="center"><img src="docs/screenshots/trend_report/Slide1.JPG" alt="Trend title slide"><br><sub>Title</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/trend_report/Slide2.JPG" alt="Score trajectory line chart"><br><sub>Score Trajectory</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/trend_report/Slide3.JPG" alt="Per-tier score trends with sparklines"><br><sub>Per-Tier Trends</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/trend_report/Slide4.JPG" alt="Improvements and focus areas tables"><br><sub>Improvements &amp; Focus</sub></td>
+  </tr>
+</table>
+
 ## Prerequisites
 
 - **Python 3.10+** with pip
