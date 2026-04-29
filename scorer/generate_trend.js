@@ -98,35 +98,119 @@ pres.author = latest.assessor || "DEBMM";
 pres.title = "DEBMM Trend Report";
 
 // ================================================================
-// SLIDE 1: Score Trajectory
+// SLIDE 1: Title — matches the main report's cover treatment
+// ================================================================
+const sTitle = pres.addSlide();
+sTitle.background = { color: C.bgDark };
+
+// Kicker (subdued lead-in, no monospace)
+sTitle.addText("Detection Engineering Maturity Assessment", {
+  x: 0.6,
+  y: 1.4,
+  w: 8.8,
+  h: 0.32,
+  fontSize: 13,
+  fontFace: "Calibri",
+  color: C.textSecondary,
+  margin: 0,
+});
+
+// Main title
+sTitle.addText("DEBMM Trend Report", {
+  x: 0.6,
+  y: 1.75,
+  w: 8.8,
+  h: 0.8,
+  fontSize: 36,
+  fontFace: "Calibri",
+  bold: true,
+  color: C.white,
+  margin: 0,
+});
+
+// Subtitle: org + period range
+const titleSubtitle = (function () {
+  const org = latest.org || "Organization";
+  const periodRange = history.length === 1
+    ? latest.date
+    : `${history[0].date} \u2014 ${latest.date}`;
+  return `${org}  \u00b7  ${periodRange}  \u00b7  ${history.length} ${history.length === 1 ? "assessment" : "assessments"}`;
+})();
+sTitle.addText(titleSubtitle, {
+  x: 0.6,
+  y: 2.5,
+  w: 8.8,
+  h: 0.4,
+  fontSize: 16,
+  fontFace: "Calibri",
+  color: C.textSecondary,
+  margin: 0,
+});
+
+// Bottom KPI strip
+sTitle.addShape(pres.shapes.RECTANGLE, {
+  x: 0,
+  y: 4.6,
+  w: 10,
+  h: 1.025,
+  fill: { color: C.bgCard },
+});
+
+const titleOverallDelta = prev ? latest.overallScore - prev.overallScore : null;
+const titleTierChanged = prev && latest.achievedTier !== prev.achievedTier;
+const titleStats = [
+  { label: "Overall score", value: fmtScore(latest.overallScore) + " / 5.00" },
+  {
+    label: "Change",
+    value: titleOverallDelta != null
+      ? `${getDeltaArrow(titleOverallDelta)} ${fmtDelta(titleOverallDelta)}`
+      : "Baseline",
+  },
+  { label: "Achieved tier", value: latest.achievedTier },
+  {
+    label: titleTierChanged ? "Tier changed" : "Assessments",
+    value: titleTierChanged
+      ? `from ${prev.achievedTier}`
+      : String(history.length),
+  },
+];
+titleStats.forEach((item, i) => {
+  const ix = 0.6 + i * 2.35;
+  sTitle.addText(item.label, {
+    x: ix,
+    y: 4.72,
+    w: 2.2,
+    h: 0.25,
+    fontSize: 11,
+    fontFace: "Calibri",
+    italic: true,
+    color: C.textMuted,
+    margin: 0,
+  });
+  sTitle.addText(item.value, {
+    x: ix,
+    y: 4.98,
+    w: 2.2,
+    h: 0.35,
+    fontSize: 14,
+    fontFace: "Calibri",
+    bold: true,
+    color: C.textPrimary,
+    margin: 0,
+  });
+});
+
+// ================================================================
+// SLIDE 2: Score Trajectory
 // ================================================================
 const s1 = pres.addSlide();
 s1.background = { color: C.bgDark };
 
-// Top accent
-s1.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: 0,
-  w: 10,
-  h: 0.06,
-  fill: { color: C.cyan },
-});
-
-s1.addText("MATURITY TREND", {
-  x: 0.6,
-  y: 0.2,
-  w: 8,
-  h: 0.25,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
+// (Decorative MATURITY TREND eyebrow removed — title is enough)
 
 s1.addText("Score Trajectory", {
   x: 0.6,
-  y: 0.45,
+  y: 0.25,
   w: 6,
   h: 0.45,
   fontSize: 24,
@@ -141,13 +225,14 @@ const rangeText =
   history.length === 1
     ? `Baseline: ${latest.date}`
     : `${history[0].date} \u2014 ${latest.date}  (${history.length} assessments)`;
-s1.addText(rangeText, {
+s1.addText(rangeText + "  —  Overall score over time, with the 3.0 Defined threshold.", {
   x: 0.6,
-  y: 0.85,
-  w: 8,
-  h: 0.25,
-  fontSize: 11,
+  y: 0.72,
+  w: 9.2,
+  h: 0.32,
+  fontSize: 12,
   fontFace: "Calibri",
+  italic: true,
   color: C.textSecondary,
   margin: 0,
 });
@@ -163,13 +248,13 @@ if (!hasMultiple) {
     shadow: mkShadow(),
   });
 
-  s1.addText("BASELINE ESTABLISHED", {
+  s1.addText("Baseline established", {
     x: 1.5,
     y: 2.0,
     w: 7,
     h: 0.4,
-    fontSize: 14,
-    fontFace: "Consolas",
+    fontSize: 16,
+    fontFace: "Calibri",
     bold: true,
     color: C.cyan,
     align: "center",
@@ -333,25 +418,8 @@ if (!hasMultiple) {
     });
   });
 
-  // Tier achievement badges
-  let lastTier = null;
-  points.forEach((p) => {
-    if (p.tier !== lastTier && p.tier !== "Below Foundation") {
-      s1.addText(p.tier.replace("Tier ", "T"), {
-        x: p.x - 0.4,
-        y: p.y + 0.14,
-        w: 0.8,
-        h: 0.16,
-        fontSize: 6,
-        fontFace: "Consolas",
-        bold: true,
-        color: C.green,
-        align: "center",
-        margin: 0,
-      });
-    }
-    lastTier = p.tier;
-  });
+  // (Removed per-dot tier badges — they overlapped the 3.0 threshold label and the bottom strip's 'Tier changed' field already conveys the
+  // tier transition.)
 }
 
 // Bottom bar — current vs previous
@@ -370,15 +438,15 @@ const overallDelta = prev
 const tierChanged = prev && latest.achievedTier !== prev.achievedTier;
 
 const s1Stats = [
-  { label: "CURRENT SCORE", value: fmtScore(latest.overallScore), color: C.cyan },
+  { label: "Current score", value: fmtScore(latest.overallScore), color: C.cyan },
   {
-    label: "CHANGE",
+    label: "Change",
     value: overallDelta != null ? `${getDeltaArrow(overallDelta)} ${fmtDelta(overallDelta)}` : "Baseline",
     color: overallDelta != null ? getDeltaColor(overallDelta) : C.textMuted,
   },
-  { label: "ACHIEVED TIER", value: latest.achievedTier.replace("Tier ", "T"), color: C.cyan },
+  { label: "Achieved tier", value: latest.achievedTier.replace("Tier ", "T"), color: C.cyan },
   {
-    label: tierChanged ? "TIER CHANGED" : "ASSESSMENTS",
+    label: tierChanged ? "Tier changed" : "Assessments",
     value: tierChanged ? `from ${prev.achievedTier.replace("Tier ", "T")}` : String(history.length),
     color: tierChanged ? C.green : C.textSecondary,
   },
@@ -391,9 +459,10 @@ s1Stats.forEach((st, i) => {
     y: s1BarY + 0.15,
     w: 2.1,
     h: 0.2,
-    fontSize: 9,
-    fontFace: "Consolas",
+    fontSize: 11,
+    fontFace: "Calibri",
     color: C.textMuted,
+    italic: true,
     margin: 0,
   });
   const valFontSize = st.value.length > 12 ? 12 : st.value.length > 8 ? 16 : 22;
@@ -416,29 +485,11 @@ s1Stats.forEach((st, i) => {
 const s2 = pres.addSlide();
 s2.background = { color: C.bgDark };
 
-s2.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: 0,
-  w: 10,
-  h: 0.06,
-  fill: { color: C.cyan },
-});
-
-s2.addText("TIER BREAKDOWN", {
-  x: 0.6,
-  y: 0.2,
-  w: 8,
-  h: 0.25,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
+// (Decorative TIER BREAKDOWN eyebrow removed)
 
 s2.addText("Per-Tier Score Trends", {
   x: 0.6,
-  y: 0.45,
+  y: 0.25,
   w: 8,
   h: 0.4,
   fontSize: 22,
@@ -505,8 +556,8 @@ latestTiers.forEach((t, i) => {
     y: tierCardY + 0.15,
     w: tierCardW - 0.24,
     h: 0.22,
-    fontSize: 8,
-    fontFace: "Consolas",
+    fontSize: 10,
+    fontFace: "Calibri",
     color: C.textMuted,
     margin: 0,
   });
@@ -645,10 +696,10 @@ const regressing = latestTiers.filter((t) => {
 const passing = latestTiers.filter((t) => t.status.includes("Pass")).length;
 
 const s2Stats = [
-  { label: "TIERS PASSING", value: `${passing} / ${latestTiers.length}`, color: C.green },
-  { label: "TIERS IMPROVING", value: hasMultiple ? String(improving) : "N/A", color: C.green },
-  { label: "TIERS REGRESSING", value: hasMultiple ? String(regressing) : "N/A", color: regressing > 0 ? C.red : C.green },
-  { label: "PERIOD", value: latest.date, color: C.cyan },
+  { label: "Tiers passing", value: `${passing} / ${latestTiers.length}`, color: C.green },
+  { label: "Tiers improving", value: hasMultiple ? String(improving) : "N/A", color: C.green },
+  { label: "Tiers regressing", value: hasMultiple ? String(regressing) : "N/A", color: regressing > 0 ? C.red : C.green },
+  { label: "Period", value: latest.date, color: C.cyan },
 ];
 
 s2Stats.forEach((st, i) => {
@@ -658,9 +709,10 @@ s2Stats.forEach((st, i) => {
     y: s2BarY + 0.15,
     w: 2.1,
     h: 0.2,
-    fontSize: 9,
-    fontFace: "Consolas",
+    fontSize: 11,
+    fontFace: "Calibri",
     color: C.textMuted,
+    italic: true,
     margin: 0,
   });
   s2.addText(st.value, {
@@ -682,37 +734,35 @@ s2Stats.forEach((st, i) => {
 const s3 = pres.addSlide();
 s3.background = { color: C.bgDark };
 
-s3.addShape(pres.shapes.RECTANGLE, {
-  x: 0,
-  y: 0,
-  w: 10,
-  h: 0.06,
-  fill: { color: C.cyan },
-});
-
-s3.addText("CRITERIA CHANGES", {
-  x: 0.6,
-  y: 0.2,
-  w: 8,
-  h: 0.25,
-  fontSize: 10,
-  fontFace: "Consolas",
-  color: C.textMuted,
-  charSpacing: 2,
-  margin: 0,
-});
+// (Decorative CRITERIA CHANGES eyebrow removed)
 
 s3.addText(
   hasMultiple ? "Improvements & Focus Areas" : "Current Criteria Scores",
   {
     x: 0.6,
-    y: 0.45,
+    y: 0.25,
     w: 8,
     h: 0.4,
     fontSize: 22,
     fontFace: "Calibri",
     bold: true,
     color: C.white,
+    margin: 0,
+  }
+);
+s3.addText(
+  hasMultiple
+    ? "Top criteria-level movements between the previous and current periods, plus those still below the 3.0 threshold."
+    : "Criteria currently below the 3.0 Defined threshold.",
+  {
+    x: 0.6,
+    y: 0.65,
+    w: 9.2,
+    h: 0.32,
+    fontSize: 11,
+    fontFace: "Calibri",
+    italic: true,
+    color: C.textSecondary,
     margin: 0,
   }
 );
@@ -739,13 +789,13 @@ const deltas = latestCriteria.map((c) => {
 const improvements = deltas
   .filter((d) => d.delta != null && d.delta > 0.05)
   .sort((a, b) => b.delta - a.delta)
-  .slice(0, 5);
+  .slice(0, 4);
 
 const needsAttention = hasMultiple
   ? deltas
       .filter((d) => d.delta != null && d.delta < -0.05)
       .sort((a, b) => a.delta - b.delta)
-      .slice(0, 5)
+      .slice(0, 4)
   : [];
 
 // If not enough regressions, fill with "closest to threshold"
@@ -758,7 +808,7 @@ const focusAreas =
             !needsAttention.find((n) => n.criterion === d.criterion)
         )
         .sort((a, b) => b.score - a.score) // closest to 3.0 first
-        .slice(0, 5 - needsAttention.length)
+        .slice(0, 4 - needsAttention.length)
     : [];
 
 const attentionList = [...needsAttention, ...focusAreas];
@@ -770,11 +820,10 @@ function renderTable(slide, title, titleColor, items, startY, showDelta) {
     y: startY,
     w: 8,
     h: 0.28,
-    fontSize: 10,
-    fontFace: "Consolas",
+    fontSize: 12,
+    fontFace: "Calibri",
     bold: true,
     color: titleColor,
-    charSpacing: 1,
     margin: 0,
   });
 
@@ -790,31 +839,32 @@ function renderTable(slide, title, titleColor, items, startY, showDelta) {
 
   const cols = showDelta
     ? [
-        { x: 0.6, w: 3.2, label: "CRITERION" },
-        { x: 3.8, w: 1.6, label: "CATEGORY" },
-        { x: 5.4, w: 1.0, label: "PREVIOUS" },
-        { x: 6.4, w: 1.0, label: "CURRENT" },
-        { x: 7.4, w: 0.8, label: "DELTA" },
-        { x: 8.2, w: 1.2, label: "STATUS" },
+        { x: 0.6, w: 3.2, label: "Criterion" },
+        { x: 3.8, w: 1.6, label: "Category" },
+        { x: 5.4, w: 1.0, label: "Previous" },
+        { x: 6.4, w: 1.0, label: "Current" },
+        { x: 7.4, w: 0.8, label: "Delta" },
+        { x: 8.2, w: 1.2, label: "Status" },
       ]
     : [
-        { x: 0.6, w: 3.5, label: "CRITERION" },
-        { x: 4.1, w: 2.0, label: "CATEGORY" },
-        { x: 6.1, w: 1.2, label: "SCORE" },
-        { x: 7.3, w: 1.0, label: "LEVEL" },
-        { x: 8.3, w: 1.2, label: "STATUS" },
+        { x: 0.6, w: 3.5, label: "Criterion" },
+        { x: 4.1, w: 2.0, label: "Category" },
+        { x: 6.1, w: 1.2, label: "Score" },
+        { x: 7.3, w: 1.0, label: "Level" },
+        { x: 8.3, w: 1.2, label: "Status" },
       ];
 
   cols.forEach((col) => {
-    slide.addText(col.label, {
+    const labelTitleCase = col.label.charAt(0) + col.label.slice(1).toLowerCase();
+    slide.addText(labelTitleCase, {
       x: col.x,
       y: hdrY + 0.03,
       w: col.w,
       h: 0.2,
-      fontSize: 7,
-      fontFace: "Consolas",
+      fontSize: 9,
+      fontFace: "Calibri",
+      bold: true,
       color: C.textMuted,
-      charSpacing: 1,
       margin: 0,
     });
   });
@@ -836,7 +886,7 @@ function renderTable(slide, title, titleColor, items, startY, showDelta) {
     return hdrY + 0.7;
   }
 
-  const rowH = 0.24;
+  const rowH = 0.22;
   items.forEach((item, idx) => {
     const ry = hdrY + 0.3 + idx * (rowH + 0.02);
 
@@ -914,7 +964,7 @@ function renderTable(slide, title, titleColor, items, startY, showDelta) {
 if (hasMultiple) {
   const afterImprove = renderTable(
     s3,
-    "\u25B2 BIGGEST IMPROVEMENTS",
+    "\u25B2 Biggest improvements",
     C.green,
     improvements,
     0.95,
@@ -922,7 +972,7 @@ if (hasMultiple) {
   );
   renderTable(
     s3,
-    "\u25BC NEEDS ATTENTION",
+    "\u25BC Needs attention",
     C.red,
     attentionList,
     afterImprove + 0.1,
@@ -933,7 +983,7 @@ if (hasMultiple) {
   const belowThreshold = deltas
     .filter((d) => d.score < 3.0)
     .sort((a, b) => a.score - b.score);
-  renderTable(s3, "CRITERIA BELOW THRESHOLD (< 3.0)", C.red, belowThreshold, 0.95, false);
+  renderTable(s3, "Criteria below threshold (< 3.0)", C.red, belowThreshold, 0.95, false);
 }
 
 // Bottom summary stats
@@ -955,16 +1005,16 @@ const belowCount = deltas.filter((d) => d.score < 3.0).length;
 
 const s3Stats = hasMultiple
   ? [
-      { label: "IMPROVED", value: String(totalImproved), color: C.green },
-      { label: "REGRESSED", value: String(totalRegressed), color: totalRegressed > 0 ? C.red : C.green },
-      { label: "UNCHANGED", value: String(totalUnchanged), color: C.textSecondary },
-      { label: "BELOW 3.0", value: String(belowCount), color: belowCount > 0 ? C.orange : C.green },
+      { label: "Improved", value: String(totalImproved), color: C.green },
+      { label: "Regressed", value: String(totalRegressed), color: totalRegressed > 0 ? C.red : C.green },
+      { label: "Unchanged", value: String(totalUnchanged), color: C.textSecondary },
+      { label: "Below 3.0", value: String(belowCount), color: belowCount > 0 ? C.orange : C.green },
     ]
   : [
-      { label: "TOTAL CRITERIA", value: String(deltas.length), color: C.cyan },
-      { label: "PASSING", value: String(deltas.length - belowCount), color: C.green },
-      { label: "BELOW 3.0", value: String(belowCount), color: belowCount > 0 ? C.orange : C.green },
-      { label: "PERIOD", value: latest.date, color: C.cyan },
+      { label: "Total criteria", value: String(deltas.length), color: C.cyan },
+      { label: "Passing", value: String(deltas.length - belowCount), color: C.green },
+      { label: "Below 3.0", value: String(belowCount), color: belowCount > 0 ? C.orange : C.green },
+      { label: "Period", value: latest.date, color: C.cyan },
     ];
 
 s3Stats.forEach((st, i) => {
@@ -974,9 +1024,10 @@ s3Stats.forEach((st, i) => {
     y: s3BarY + 0.15,
     w: 2.1,
     h: 0.2,
-    fontSize: 9,
-    fontFace: "Consolas",
+    fontSize: 11,
+    fontFace: "Calibri",
     color: C.textMuted,
+    italic: true,
     margin: 0,
   });
   s3.addText(st.value, {
