@@ -193,10 +193,13 @@ def apply_conditional_formatting(ws, cell_range):
 
 
 def level_formula(score_ref):
+    # Defined boundary aligns with the 3.0 pass threshold so the level label
+    # never contradicts the Pass/Below Target status (e.g. score 2.5 must NOT
+    # report "Defined" while also being flagged "Below Target").
     return (
         f'=IF({score_ref}="","",IF({score_ref}>=4.5,"Optimized",'
-        f'IF({score_ref}>=3.5,"Managed",IF({score_ref}>=2.5,"Defined",'
-        f'IF({score_ref}>=1.5,"Repeatable","Initial")))))'
+        f'IF({score_ref}>=3.5,"Managed",IF({score_ref}>=3.0,"Defined",'
+        f'IF({score_ref}>=2.0,"Repeatable","Initial")))))'
     )
 
 
@@ -264,7 +267,7 @@ def build_instructions_tab(wb: Workbook):
         "Detection Engineering Behavior Maturity Model (DEBMM), enriched with organizational "
         "dimensions from detectionengineering.io.",
         "",
-        "It covers 21 criteria across 7 categories, with 41 dropdown questions total.",
+        "It covers 24 criteria across 7 categories, with 46 dropdown questions total.",
         "All questions use dropdowns (Yes/No or Scale 1\u20145). No free-text required.",
     ])
 
@@ -354,7 +357,7 @@ def build_instructions_tab(wb: Workbook):
     section_card("Scoring Paths", [
         "1.  This Spreadsheet \u2014 Fill it out and scores calculate automatically in the Dashboard",
         "2.  Python CLI \u2014 Export answers to YAML and run scorer/score.py for a detailed report",
-        "3.  LLM-Assisted \u2014 Run scorer/llm_scorer.py for AI-generated improvement recommendations",
+        "3.  PowerPoint Reports \u2014 Run scorer/extract_data.py then scorer/generate_report.js for an exec-ready deck",
     ])
 
     # ── References ────────────────────────────────────────────────────
@@ -1390,6 +1393,10 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
         style_cell(ws.cell(row=row, column=1), FONT_BODY_BOLD, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
         ws.cell(row=row, column=2, value=formula)
         style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, HAIRLINE_BOTTOM)
+        if label == "Date":
+            # Force ISO date display so the cell shows "2026-04-28" rather than the
+            # Excel serial number (46140) when the Assessment cell holds a date.
+            ws.cell(row=row, column=2).number_format = "yyyy-mm-dd"
         row += 1
 
     # Overall score and tier will be filled after we compute criterion score cells
@@ -1437,16 +1444,9 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
         ws.cell(row=row, column=2, value=tier_name)
         style_cell(ws.cell(row=row, column=2), FONT_BODY, FILL_WHITE, ALIGN_LEFT, THIN_BORDER)
 
-        # Score = average of all question scores in this tier
-        tier_q_refs = []
-        for tc in tier_crits:
-            for qr in crit_to_rows.get(tc["crit_id"], []):
-                tier_q_refs.append(f"Assessment!F{qr['row']}")
-
-        if tier_q_refs:
-            refs_str = ",".join(tier_q_refs)
-            ws.cell(row=row, column=3,
-                    value=f'=IF(COUNT({refs_str})=0,"",AVERAGE({refs_str}))')
+        # Score formula deferred until after Table 3 (criterion breakdown) is built,
+        # so we can average criterion scores rather than question scores — matching
+        # the Dashboard's methodology and avoiding cross-sheet score discrepancies.
         ws.cell(row=row, column=3).number_format = "0.00"
         style_cell(ws.cell(row=row, column=3), FONT_BODY_BOLD, FILL_WHITE, ALIGN_CENTER, THIN_BORDER)
 
@@ -1551,6 +1551,17 @@ def build_report_data_tab(wb: Workbook, rubric: dict, question_rows: list):
         ws.cell(row=overall_score_row, column=2,
                 value=f'=IF(COUNT({all_refs})=0,"",ROUND(AVERAGE({all_refs}),2))')
         ws.cell(row=overall_score_row, column=2).number_format = "0.00"
+
+    # ── Fill in tier Scores using criterion averages (matches Dashboard methodology) ──
+    # Averaging criterion scores (not question scores directly) keeps Table 2 numerically
+    # consistent with the Dashboard tab and respects the rubric's unit of measurement.
+    for tid in core_tier_ids_ordered:
+        trow = tier_score_rows[tid]
+        crit_cells = core_crit_cells_by_tier.get(tid, [])
+        if crit_cells:
+            refs = ",".join(crit_cells)
+            ws.cell(row=trow, column=3,
+                    value=f'=IF(COUNT({refs})=0,"",AVERAGE({refs}))')
 
     # ── Per-criterion tier checks (matches Dashboard logic) ───────────
     # Tier passes only when ALL individual criteria in that tier score >= 3.0
