@@ -2,30 +2,6 @@
 
 A toolkit for SOC managers to assess detection engineering maturity, based on [Elastic's Detection Engineering Behavior Maturity Model (DEBMM)](https://www.elastic.co/security-labs/elastic-releases-debmm) enriched with organizational dimensions from [detectionengineering.io](https://detectionengineering.io/).
 
-## Screenshots
-
-### Executive deck
-
-The 5-slide PowerPoint generated from a completed assessment.
-
-![DEBMM Executive Summary slide — tier verdict, coverage progress bar, next-tier unlock, and focus areas](docs/screenshots/Slide2.JPG)
-
-<table>
-  <tr>
-    <td width="50%" align="center"><img src="docs/screenshots/Slide1.JPG" alt="Title slide with overall score, achieved tier, and pass/fail summary"><br><sub><b>Title</b> — overall score, tier, pass/fail summary</sub></td>
-    <td width="50%" align="center"><img src="docs/screenshots/Slide3.JPG" alt="DEBMM Tier Overview — five tier KPI cards"><br><sub><b>Tier Overview</b> — five tier KPI cards with progression status</sub></td>
-  </tr>
-  <tr>
-    <td width="50%" align="center"><img src="docs/screenshots/Slide4.JPG" alt="Core Criteria Breakdown — table of all 18 DEBMM criteria"><br><sub><b>Core Criteria</b> — all 18 criteria, failing rows in red</sub></td>
-    <td width="50%" align="center"><img src="docs/screenshots/Slide5.JPG" alt="People, Process & Governance enrichment dimensions"><br><sub><b>Enrichment</b> — People, Process & Governance dimensions</sub></td>
-  </tr>
-</table>
-
-### Assessment workbook
-
-The Excel input. 46 dropdown answers across 7 tabs; auto-scoring drives every downstream tab and report.
-
-![Assessment tab in Excel showing dropdown-driven scoring](docs/screenshots/Spreadsheet1.jpg)
 
 ## Why I Built This
 
@@ -48,6 +24,31 @@ A structured assessment covering **24 criteria** across **7 categories** with **
 Each criterion is scored on a 1–5 maturity scale (Initial → Optimized). The **achieved tier** is the highest tier where every criterion in that tier and below scores ≥ 3.0 — enforcing the model's progressive philosophy.
 
 The same template handles self-assessments and external audits. Every question has an **Evidence / Notes** column: leave it blank for self-assessments, or fill it in to document the basis for each rating during an audit.
+
+## Screenshots
+
+### Executive deck
+
+The 5-slide PowerPoint generated from a completed assessment.
+
+![DEBMM Executive Summary slide — tier verdict, coverage progress bar, next-tier unlock, and focus areas](docs/screenshots/report/Slide2.JPG)
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/report/Slide1.JPG" alt="Title slide with overall score, achieved tier, and pass/fail summary"><br><sub><b>Title</b> — overall score, tier, pass/fail summary</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/report/Slide3.JPG" alt="DEBMM Tier Overview — five tier KPI cards"><br><sub><b>Tier Overview</b> — five tier KPI cards with progression status</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/report/Slide4.JPG" alt="Core Criteria Breakdown — table of all 18 DEBMM criteria"><br><sub><b>Core Criteria</b> — all 18 criteria, failing rows in red</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/report/Slide5.JPG" alt="People, Process & Governance enrichment dimensions"><br><sub><b>Enrichment</b> — People, Process & Governance dimensions</sub></td>
+  </tr>
+</table>
+
+### Assessment workbook
+
+The Excel input. 46 dropdown answers across 7 tabs; auto-scoring drives every downstream tab and report.
+
+![Assessment tab in Excel showing dropdown-driven scoring](docs/screenshots/spreadsheet/Spreadsheet1.jpg)
 
 ## Prerequisites
 
